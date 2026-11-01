@@ -22,13 +22,25 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android platform/build-tools
+      - name: Configure Android SDK (use runner preinstalled)
         shell: pwsh
         run: |
-          sdkmanager "platforms;android-35" "build-tools;34.0.0" "platform-tools"
+          $candidates = @($env:ANDROID_HOME, $env:ANDROID_SDK_ROOT,
+                          "C:\Android\android-sdk", "$env:LOCALAPPDATA\Android\Sdk")
+          $sdk = $candidates | Where-Object { $_ -and (Test-Path (Join-Path $_ "build-tools")) } | Select-Object -First 1
+          if (-not $sdk) { throw "Android SDK not found on runner" }
+          Write-Host "SDK=$sdk"
+          "ANDROID_HOME=$sdk" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "ANDROID_SDK_ROOT=$sdk" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $sm = Get-ChildItem (Join-Path $sdk "cmdline-tools") -Recurse -Filter sdkmanager.bat -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($sm) {
+            & $sm.FullName --sdk_root=$sdk "platforms;android-35" "build-tools;34.0.0" "platform-tools"
+            Write-Host "sdkmanager exit=$LASTEXITCODE"
+          } else {
+            Write-Host "sdkmanager not found, use preinstalled packages"
+          }
+          Get-ChildItem (Join-Path $sdk "build-tools") -Directory | Select-Object Name
+          Get-ChildItem (Join-Path $sdk "platforms") -Directory | Select-Object Name
 
       - name: Build WushuangADB + WushuangDesktop
         shell: pwsh
