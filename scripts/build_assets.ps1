@@ -89,20 +89,29 @@ function Build-Apk([string]$srcDir, [string]$pkgPath, [string]$outName) {
         $d8 = Join-Path $btDir "d8.bat"
         if (-not (Test-Path $d8)) { $d8 = Join-Path $btDir "d8" }
         & $d8 --lib $androidJar --min-api $MinSdk --output dexout classes.jar
+        if ($LASTEXITCODE -ne 0) { throw "d8 失败 (exit $LASTEXITCODE)" }
+        if (-not (Test-Path "dexout\classes.dex")) { throw "d8 没有产出 classes.dex" }
 
-        $py = (Get-Command python -ErrorAction SilentlyContinue).Source
-        if (-not $py) { throw "需要 Python 3 来把 classes.dex 打进 APK" }
-        & $py -c @"
-import zipfile
-src=r'$srcDir\app.unsigned.apk'; out=r'$srcDir\app.withdex.apk'
-with zipfile.ZipFile(src) as zin, zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as zout:
-    for item in zin.infolist(): zout.writestr(item, zin.read(item.filename))
-    zout.write(r'$srcDir\dexout\classes.dex','classes.dex')
-"@
+        # 纯 PowerShell 把 classes.dex 写进 APK（不依赖 python，CI 上更稳）
+        Copy-Item app.unsigned.apk app.withdex.apk -Force
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $zip = [System.IO.Compression.ZipFile]::Open((Join-Path $srcDir "app.withdex.apk"), 'Update')
+        try {
+            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+                $zip, (Join-Path $srcDir "dexout\classes.dex"), "classes.dex") | Out-Null
+        } finally {
+            $zip.Dispose()
+        }
+        $hasDex = [System.IO.Compression.ZipFile]::OpenRead((Join-Path $srcDir "app.withdex.apk")).Entries |
+                  Where-Object { $_.FullName -eq "classes.dex" }
+        if (-not $hasDex) { throw "APK 里没有 classes.dex" }
+
         & (Join-Path $btDir "zipalign.exe") -f 4 app.withdex.apk app.aligned.apk
+        if ($LASTEXITCODE -ne 0) { throw "zipalign 失败 (exit $LASTEXITCODE)" }
         & (Join-Path $btDir "apksigner.bat") sign --ks $ks --ks-pass pass:android `
             --key-pass pass:android --ks-key-alias androiddebugkey `
             --out (Join-Path $OutDir $outName) app.aligned.apk
+        if ($LASTEXITCODE -ne 0) { throw "apksigner 失败 (exit $LASTEXITCODE)" }
         Write-Host "built: $(Join-Path $OutDir $outName)"
     } finally {
         Pop-Location

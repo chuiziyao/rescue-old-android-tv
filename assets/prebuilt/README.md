@@ -2,8 +2,8 @@
 
 | 文件 | 包名 | 版本 | minSdk | SHA-256 |
 |---|---|---|---|---|
-| `WushuangADB.apk` | `com.wushuang.adb` | 1.3 (vc 4) | **16**（Android 4.1+） | `ECD689C0EC97D2964D8F38C33E0C52BD6BF64A171CCF91841D263A4212728310` |
-| `WushuangDesktop.apk` | `com.wushuang.desktop` | 13.0 (vc 13) | **16**（Android 4.1+） | `A4FDDCE9681895DFE660F8A20B1416E99FBCC044C223C4249A07A43905D1E220` |
+| `WushuangADB.apk` | `com.wushuang.adb` | 1.3 (vc 4) | **16**（Android 4.1+） | `AD8BC79A2F36F2C3FF786166CC350E1DB9B9208F958D9AA420DFA605881E75B7` |
+| `WushuangDesktop.apk` | `com.wushuang.desktop` | 13.0 (vc 13) | **16**（Android 4.1+） | `D39E90AD6894E98C30B6F3075314702F15EDBEE84BE24124EB9CBB6E54387667` |
 
 - 签名密钥：`assets/signing/debug.keystore`（别名 `androiddebugkey`，口令 `android`，证书 SHA-256 `30C8583C815E818EC74F2C16BC22737CE713ED25532A9D9C500531A08AAD6EE5`）。公开的 debug 密钥，只用于自用，**不要商店分发**。
 - `targetSdk` 均为 18；电视 API 低于 16 时用 `scripts/build_assets.ps1 -MinSdk 14` 重编。
