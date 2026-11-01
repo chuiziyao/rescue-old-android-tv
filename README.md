@@ -77,8 +77,8 @@ python scripts/check_apk.py some.apk
 
 | APK | 版本 | minSdk | 用途 |
 |---|---|---|---|
-| `assets/prebuilt/ADB-Switch.apk` | 1.2 | 16（Android 4.1+） | 一键开/关网络 ADB（需 root） |
-| `assets/prebuilt/SimpleHome.apk` | 9.0 | 16（Android 4.1+） | 极简 HOME 桌面 |
+| `assets/prebuilt/ADB-Switch.apk` | 1.3 | 16（Android 4.1+） | 一键开/关网络 ADB（需 root） |
+| `assets/prebuilt/SimpleHome.apk` | 10.0 | 16（Android 4.1+） | 极简 HOME 桌面 |
 
 只有需要改默认卡片/图标/配色，或电视低于 Android 4.1 时，才需要用 `scripts/build_assets.ps1` 重新编译（源码在 `assets/` 下）。
 

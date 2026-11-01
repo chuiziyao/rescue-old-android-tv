@@ -59,8 +59,10 @@ $androidJar = Join-Path $platforms[-1].FullName "android.jar"
 
 $env:JAVA_HOME = $jdk
 $env:PATH = (Join-Path $jdk "bin") + ";" + $btDir + ";" + $env:PATH
-$ks = Join-Path $OutDir "debug.keystore"
+$ks = Join-Path $root "assets\signing\debug.keystore"
 if (-not (Test-Path $ks)) {
+    Write-Warning "缺少 assets\signing\debug.keystore，将新建一个；新密钥签出的 APK 无法覆盖安装旧版（需先卸载旧版）"
+    New-Item -ItemType Directory -Force -Path (Split-Path $ks) | Out-Null
     & (Join-Path $jdk "bin\keytool.exe") -genkeypair -v -keystore $ks `
         -storepass android -keypass android -alias androiddebugkey `
         -keyalg RSA -keysize 2048 -validity 10000 `
