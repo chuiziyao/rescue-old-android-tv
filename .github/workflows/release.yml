@@ -61,7 +61,8 @@ jobs:
           Start-Transcript -Path build.log -Force | Out-Null
           $ok = $false
           try {
-            ./scripts/build_assets.ps1 -OutDir dist 2>&1 | Tee-Object -FilePath build.out
+            $distAbs = Join-Path $PWD "dist"
+            ./scripts/build_assets.ps1 -OutDir $distAbs 2>&1 | Tee-Object -FilePath build.out
             "script returned" | Add-Content $dbg
             $ok = $true
           } catch {
