@@ -57,15 +57,24 @@ jobs:
         shell: pwsh
         run: |
           Start-Transcript -Path build.log -Force | Out-Null
+          $ok = $false
           try {
             ./scripts/build_assets.ps1 -OutDir dist
+            $ok = $true
           } catch {
             Write-Host "BUILD FAILED: $($_.Exception.Message)"
             Write-Host $_.ScriptStackTrace
-            throw
           } finally {
             Stop-Transcript | Out-Null
           }
+          Get-ChildItem dist/*.apk -ErrorAction SilentlyContinue | Select-Object Name, Length
+          if (-not $ok) { exit 1 }
+          if (-not (Test-Path dist/WushuangADB.apk) -or -not (Test-Path dist/WushuangDesktop.apk)) {
+            Write-Host "missing apk"
+            exit 1
+          }
+          Write-Host "BUILD OK"
+          exit 0
 
       - name: Report failure to commit comment
         if: failure()
