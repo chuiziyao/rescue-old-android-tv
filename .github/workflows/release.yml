@@ -1,0 +1,54 @@
+name: Build APKs & Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform/build-tools
+        shell: pwsh
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;34.0.0" "platform-tools"
+
+      - name: Build WushuangADB + WushuangDesktop
+        shell: pwsh
+        run: |
+          ./scripts/build_assets.ps1 -OutDir dist
+
+      - name: Show built APKs
+        shell: pwsh
+        run: |
+          Get-ChildItem dist/*.apk | Select-Object Name, Length
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wushuang-apks
+          path: dist/*.apk
+
+      - name: Publish Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.apk
+          generate_release_notes: true
