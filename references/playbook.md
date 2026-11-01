@@ -54,7 +54,9 @@ ro.build.version.sdk=18
 1. U 盘拷 `assets/prebuilt/WushuangADB.apk` → 电视「文件管理」安装（没 U 盘就先用 2.2 的当贝推送把它推进去）；
 2. 打开「无双ADB」→ SuperSU 允许；
 3. App 自动开 ADB 并启动推送服务，屏幕显示 Android 版本 / API / 型号 / 平台 / 内核 / IP / Root / ADB 端口，以及 `推送地址: http://<电视IP>:8555/`；
-4. 电脑浏览器打开推送地址：上传 APK 自动安装、网页按钮卸载（装包/卸载需要 root）。
+4. 电脑浏览器打开推送地址：上传 APK 安装、网页按钮卸载（有 root 静默；无 root 自动弹系统安装器，让用户在电视上点确认）。
+
+> root 不是必须：很多刷机 ROM 自带 `su`（不需要另装 SuperSU）；完全没 root 时也能用"无 root 模式"装包/卸载，但**开 ADB 必须 root 或工程菜单**。
 
 > 装完必须先打开一次，开机广播（自动 ADB + 推送服务）才会生效。推送页和 ADB 都是明文无鉴权，用完点「停止推送」「关闭 ADB」。
 

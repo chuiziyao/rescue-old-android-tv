@@ -1,14 +1,14 @@
 ---
 name: rescue-old-android-tv
 description: 拯救老安卓电视（Android 4.x 国产定制电视/盒子，如乐视、小米、创维、TCL 等）：用自带「无双ADB」一键看硬件信息、开 ADB、开局域网推送装包/卸载；按 minSdk 找兼容老系统的 App 版本；用手机版 App 绕过 TV 版限制；用自带「无双桌面」替换广告桌面；用 pm disable-user 去广告；并在不可行时给出电视盒子兜底方案。触发词：老电视、安卓电视、电视卡、电视去广告、换电视桌面、DS video、当贝市场、adb调试、乐视电视、刷机包、电视精简。
-version: 1.1.0
+version: 1.2.0
 author: B站-锤无双
 user-invocable: true
 argument-hint: "[电视IP]"
 metadata:
   short-description: 老安卓电视抢救指南（无双ADB/无双桌面/兼容App/去广告）
   author: B站-锤无双
-  version: V1.1
+  version: V1.2
   qq-group: "170621740"
 ---
 
@@ -20,7 +20,7 @@ metadata:
 
 | APK | 作用 |
 |---|---|
-| `WushuangADB.apk`（无双ADB） | 看 build.prop/IP/内核/root、一键开 ADB、开 HTTP 推送页（浏览器上传 APK 自动安装、网页卸载）、开机自启推送与自动 ADB |
+| `WushuangADB.apk`（无双ADB） | 看 build.prop/IP/内核/root、一键开 ADB、开 HTTP 推送页（浏览器上传 APK 自动安装、网页卸载）、开机自启推送与自动 ADB；**有 root 静默装/卸载，无 root 自动切系统安装器让用户确认** |
 | `WushuangDesktop.apk`（无双桌面） | 极简 HOME 桌面：统一图标、深色卡片、时钟、＋添加应用、长按移除 |
 
 ## 先读：三条铁律
@@ -67,7 +67,7 @@ metadata:
 3. App 会自动执行 `setprop service.adb.tcp.port 5555; setprop service.adb.root 1; stop adbd; start adbd`，屏幕显示 `ADB 端口: 5555`。
 4. 同一屏还会显示推送地址 `http://<电视IP>:8555/`——浏览器打开即可上传 APK 安装、点按钮卸载，**不再需要当贝市场**。
 
-> 无双ADB 需要 root 才能开 ADB / 静默装包卸载；无 root 时只能看信息。
+> 无双ADB **不是必须 root**：有 root → 静默装/卸载 + 一键开 ADB；无 root → 网页推送后在电视上点「安装」确认（ADB 仍需工程菜单开）。
 > 开机自启：推送服务和自动开 ADB 由 `BOOT_COMPLETED` 触发，**装完必须先手动打开一次 App**（否则处于 stopped 状态收不到广播）。
 
 ### 路线 B：当贝市场"远程推送"（没有 U 盘/文件管理器时）
@@ -274,7 +274,7 @@ com.android.gallery3d           # 相册（按需）
 
 | 路径 | 用途 |
 |---|---|
-| `assets/prebuilt/WushuangADB.apk` | 无双ADB（信息/开ADB/局域网装包卸载，minSdk 16） |
+| `assets/prebuilt/WushuangADB.apk` | 无双ADB（信息/开ADB/局域网装包卸载，minSdk 16，有 root 静默/无 root 确认） |
 | `assets/prebuilt/WushuangDesktop.apk` | 无双桌面（minSdk 16） |
 | `assets/wushuang-adb/`、`assets/wushuang-desktop/` | 两个 App 的完整源码 |
 | `assets/signing/debug.keystore` | 固定签名密钥（别名 androiddebugkey / 口令 android），保证重编可覆盖升级 |
@@ -286,9 +286,10 @@ com.android.gallery3d           # 相册（按需）
 
 ## 作者与版本
 
-- 版本：**V1.1**
+- 版本：**V1.2**
 - 作者：**B站-锤无双**
 - 交流 QQ 群：**170621740**
+- V1.2 新增：无双ADB 无 root 模式（网页推送 → 系统安装器确认；卸载走系统确认框），解释"为什么不能自动 root"，文档区分"装包/桌面（可无 root）"与"开 ADB（需 root 或工程菜单）"。
 - V1.1 新增：无双ADB（信息/开ADB/局域网推送装包卸载/开机自启）、无双桌面改名、固定签名密钥、IP 变化自动发现、HOME 键坑位说明。
 - 欢迎补充新机型与新 App 版本（提 Issue / PR 即可）。
 

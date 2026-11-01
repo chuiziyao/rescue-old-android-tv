@@ -6,7 +6,7 @@
 [![APK minSdk](https://img.shields.io/badge/APK%20minSdk-16-blue)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-> **版本 V1.1** ｜ 作者：**B站-锤无双** ｜ 交流 QQ 群：**170621740**
+> **版本 V1.2** ｜ 作者：**B站-锤无双** ｜ 交流 QQ 群：**170621740**
 
 来自一次真实抢救：**乐视 X3-43（MStar 6A918 / Android 4.3 / API 18 / EUI 6.0 / 已 root）**。最终结果：DS video 可用、银河奇异果/云视听极光/云视听小电视可用、无双桌面替代广告桌面、广告服务全部停用、ADB 与局域网推送全程可控。
 
@@ -16,10 +16,20 @@
 
 | APK | 包名 | 作用 |
 |---|---|---|
-| **无双ADB** `WushuangADB.apk` | `com.wushuang.adb` | 看 build.prop / IP / 内核 / root；一键开/关 ADB（含 root 模式）；开局域网推送页 `http://电视IP:8555/`——浏览器上传 APK 自动安装、网页卸载；开机自启推送服务并自动开 ADB（装后需先打开一次） |
+| **无双ADB** `WushuangADB.apk` | `com.wushuang.adb` | 看 build.prop / IP / 内核 / root；一键开/关 ADB（含 root 模式）；开局域网推送页 `http://电视IP:8555/`——浏览器上传 APK 安装、网页卸载；**有 root 静默装，没 root 自动弹系统安装器让用户在电视上确认**；开机自启推送服务并自动开 ADB（装后需先打开一次） |
 | **无双桌面** `WushuangDesktop.apk` | `com.wushuang.desktop` | 极简 HOME：深色卡片、统一 64dp 图标、24 小时时钟、左上角「无双桌面」、＋添加应用、长按移除 |
 
 > 两个 APK 都是 minSdk 16（Android 4.1+），用仓库内固定密钥 `assets/signing/debug.keystore` 签名（口令 `android`），重编可覆盖升级。**无双ADB 的开 ADB / 装包 / 卸载需要 root；无双桌面安装不需要 root，但替换默认桌面通常需要停用原桌面（要 root）。**
+
+## 关于 root：能不能"直接做掉"？
+
+**结论：做不到通用自动 root。** root 依赖具体 SoC 的 bootloader/系统漏洞，不同机型方法完全不同；把提权漏洞打进 APK 既不通用也不安全。本项目不内置任何 root 漏洞。
+
+但没有 SuperSU 也能用：
+
+- 很多刷机 ROM 自带 `su`（SuperSU 只是管理器）：**用户不需要另装 SuperSU**，无双ADB 直接调用 `su` 即可开 ADB / 静默装包；如果 ROM 自带授权弹窗，点允许就行；
+- 电视完全没 root：无双ADB 自动进**无 root 模式**——网页上传后电视弹系统安装器，点「安装」；卸载弹系统确认框。开 ADB 只能走厂商工程菜单；
+- 换桌面：装无双桌面不需要 root；只有"停用原桌面"需要 root，部分电视允许 HOME 键弹窗里选「始终」，也能无 root 换。
 
 ## 它解决什么问题
 
@@ -86,9 +96,10 @@ rescue-old-android-tv/
 
 ## 作者
 
-- 版本：**V1.1**
+- 版本：**V1.2**
 - 作者：**B站-锤无双**
 - 交流 QQ 群：**170621740**
+- V1.2：无双ADB 无 root 模式（网页推送→系统安装器确认、系统卸载确认）、说明"为什么不能自动 root"。
 - V1.1：新增无双ADB（信息/开ADB/局域网推送/开机自启）、无双桌面改名、固定签名密钥、IP 变化发现、HOME 键坑位。
 
 ## 免责声明
