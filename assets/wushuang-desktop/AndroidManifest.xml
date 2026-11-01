@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.dsh.simplehome"
-    android:versionCode="10"
-    android:versionName="10.0">
+    package="com.wushuang.desktop"
+    android:versionCode="11"
+    android:versionName="11.0">
     <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="18" />
     <application
-        android:label="我家电视"
+        android:label="无双桌面"
         android:allowBackup="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
         <activity
             android:name=".MainActivity"
-            android:label="我家电视"
+            android:label="无双桌面"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

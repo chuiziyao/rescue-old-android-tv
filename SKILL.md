@@ -1,20 +1,27 @@
 ---
 name: rescue-old-android-tv
-description: 拯救老安卓电视（Android 4.x 国产定制电视/盒子，如乐视、小米、创维、TCL 等）：核对真实 Android/API 版本，开启 ADB（含当贝市场远程安装兜底），按 minSdk 找兼容老系统的 App 版本，用手机版 App 绕过 TV 版限制，自制极简桌面替换广告桌面，用 pm disable-user 去广告，并在不可行时给出电视盒子兜底方案。触发词：老电视、安卓电视、电视卡、电视去广告、换电视桌面、DS video、当贝市场、adb调试、乐视电视、刷机包、电视精简。
-version: 1.0.0
+description: 拯救老安卓电视（Android 4.x 国产定制电视/盒子，如乐视、小米、创维、TCL 等）：用自带「无双ADB」一键看硬件信息、开 ADB、开局域网推送装包/卸载；按 minSdk 找兼容老系统的 App 版本；用手机版 App 绕过 TV 版限制；用自带「无双桌面」替换广告桌面；用 pm disable-user 去广告；并在不可行时给出电视盒子兜底方案。触发词：老电视、安卓电视、电视卡、电视去广告、换电视桌面、DS video、当贝市场、adb调试、乐视电视、刷机包、电视精简。
+version: 1.1.0
 author: B站-锤无双
 user-invocable: true
 argument-hint: "[电视IP]"
 metadata:
-  short-description: 老安卓电视抢救指南（ADB/兼容App/极简桌面/去广告）
+  short-description: 老安卓电视抢救指南（无双ADB/无双桌面/兼容App/去广告）
   author: B站-锤无双
-  version: V1.0
+  version: V1.1
   qq-group: "170621740"
 ---
 
 # 拯救老安卓电视
 
 给 AI Agent 的操作手册：把一台 Android 4.x 的国产定制电视，从"什么都装不上、满屏广告"变成"能装兼容 App、有干净桌面、没有广告"的可用设备。本文档来自一次真实的乐视 X3-43（MStar 918 / Android 4.3 / EUI 6.0）抢救过程。
+
+**本 skill 自带两个 APK（`assets/prebuilt/`），都不依赖当贝市场：**
+
+| APK | 作用 |
+|---|---|
+| `WushuangADB.apk`（无双ADB） | 看 build.prop/IP/内核/root、一键开 ADB、开 HTTP 推送页（浏览器上传 APK 自动安装、网页卸载）、开机自启推送与自动 ADB |
+| `WushuangDesktop.apk`（无双桌面） | 极简 HOME 桌面：统一图标、深色卡片、时钟、＋添加应用、长按移除 |
 
 ## 先读：三条铁律
 
@@ -33,63 +40,70 @@ metadata:
 ## 总流程
 
 ```
-阶段0 收集信息 → 阶段1 开ADB → 阶段2 建立控制 → 阶段3 找兼容App → 阶段4 换桌面 → 阶段5 去广告 → 阶段6 验证收尾
+阶段0 装无双ADB看信息 → 阶段1 开ADB/推送 → 阶段2 建立控制 → 阶段3 找兼容App → 阶段4 换无双桌面 → 阶段5 去广告 → 阶段6 验证收尾
 ```
 
 详细命令和踩坑见 `references/playbook.md`；ADB 命令速查见 `references/adb-cheatsheet.md`；找旧版 App 的方法见 `references/app-version-hunting.md`；乐视/MStar 的机型背景见 `references/letv-918-notes.md`。
 
-## 阶段 0：收集信息（让用户拍照/截图）
+## 阶段 0：装「无双ADB」，一眼看全信息
 
-1. **电视型号与系统信息页**（设置→关于/系统信息，多翻几页）：设备名称、产品型号、EUI/系统版本、硬件版本、**Android 版本/内核版本**。
-2. **网络信息页**：IP 地址（如 192.168.2.163）、MAC（判断有线/无线）。
-3. **桌面截图**：确认已装哪些 App、是不是已 root（SuperSU/KingRoot 图标）。
-4. **刷机包目录**（如果有）：原厂包、第三方包各多大，文件名（如 `LetvUpgrade.bin`），用于判断平台和是否刷过机。
+**推荐第一条命令就是让用户装无双ADB**（U 盘 / 电视自带文件管理器 / 当贝市场远程推送都行），打开后屏幕上直接显示：
 
-拿不到 Android 版本时，最可靠的办法是让用户用 Root Explorer 打开 `/system/build.prop` 拍照，看 `ro.build.version.release` 和 `ro.build.version.sdk`。其次可以让用户装一个系统信息类 App；再次是"试装"（见阶段 1 的 ADB 开关 APK 或阶段 3 的 APK 测试）。
+- Android 版本 / API level / 型号 / 平台 / 内核
+- 全部 IPv4 地址
+- Root 状态
+- 当前 ADB 端口
 
-## 阶段 1：开启 ADB（三条路，按顺序试）
+比让用户去翻设置、拍照 build.prop 快得多。装好并打开一次后，它还会自动尝试开 ADB、自动启动局域网推送服务（`http://<电视IP>:8555/`）。
 
-### 路线 A：厂商工程菜单（最快，但常被精简固件阉割）
+同时仍建议收集：电视型号与系统信息页截图、桌面截图（看已装 App / 是否有 SuperSU）、刷机包目录（如果有）。
+
+## 阶段 1：开 ADB（四条路，按顺序试）
+
+### 路线 A：无双ADB（首选，只要电视能 root）
+
+1. 把 `assets/prebuilt/WushuangADB.apk` 拷到 U 盘根目录，插电视，用电视的「文件管理」安装；或者用当贝市场远程推送（见路线 B）装进去。
+2. 打开「无双ADB」→ SuperSU 点「允许」。
+3. App 会自动执行 `setprop service.adb.tcp.port 5555; setprop service.adb.root 1; stop adbd; start adbd`，屏幕显示 `ADB 端口: 5555`。
+4. 同一屏还会显示推送地址 `http://<电视IP>:8555/`——浏览器打开即可上传 APK 安装、点按钮卸载，**不再需要当贝市场**。
+
+> 无双ADB 需要 root 才能开 ADB / 静默装包卸载；无 root 时只能看信息。
+> 开机自启：推送服务和自动开 ADB 由 `BOOT_COMPLETED` 触发，**装完必须先手动打开一次 App**（否则处于 stopped 状态收不到广播）。
+
+### 路线 B：当贝市场"远程推送"（没有 U 盘/文件管理器时）
+
+1. 电视打开 **当贝市场 → 我的 → 远程推送**，记下 `IP:端口`（端口会变：见过 5002、5003）。
+2. PC 扫端口：`python scripts/adb.py find-push <TV_IP>`，或浏览器看 `http://<IP>:<PORT>/` 是不是当贝页面。
+3. 上传无双ADB：
+   ```bash
+   python scripts/adb.py upload http://<IP>:<PORT> assets/prebuilt/WushuangADB.apk
+   ```
+4. 电视上点安装 → 打开无双ADB → 允许 root，ADB 就开了。
+
+### 路线 C：厂商工程菜单（部分 ROM 可用）
 
 - 乐视：遥控器 **信号源 → 输入 2580 → 其他选项 → 拉到底 → ADB 调试 → 开启 → 重启电视**。
-- 小米/创维/海信/长虹/海尔等：见 `references/adb-cheatsheet.md` 的"开 ADB 速查表"。
-- 注意：很多"精简 ROM"把工程菜单里的 ADB 项删了；MStar 工厂菜单（Design Menu / Factory Menu）里通常**没有** ADB 开关，只有 Uart Enable，不要在这里浪费时间。
+- 其它品牌：见 `references/adb-cheatsheet.md` 的"开 ADB 速查表"。
+- 注意：很多"精简 ROM"把工程菜单里的 ADB 项删了；MStar 工厂菜单（Design Menu / Factory Menu）里通常**没有** ADB 开关，只有 Uart Enable。
 
-### 路线 B：当贝市场"远程推送"（没有 ADB 时的救命通道）
-
-前提：电视上已装当贝市场（国产电视/盒子大多有）。
-
-1. 电视上打开 **当贝市场 → 我的 → 远程推送**，屏幕会显示 `IP:端口`（端口每次都可能变，见过 5002、5003）。
-2. PC 先扫端口确认页面：`scripts/adb.py find-push <TV_IP>`，或 GET `http://<IP>:<PORT>/` 看是不是"当贝市场…互传文件"页面。
-3. PC 上传 APK：
+### 路线 D：root 终端兜底
 
 ```bash
-curl -F "file1=@ADB-Switch.apk;filename=ADB-Switch.apk;type=application/vnd.android.package-archive" \
-     http://<TV_IP>:<PORT>/upload
-# 返回 ok 即成功；电视端会弹安装框，用户点安装
+su
+setprop service.adb.tcp.port 5555
+stop adbd
+start adbd
 ```
 
-4. 装好后打开 **「ADB开关」**，点「一键开启 ADB (5555)」，SuperSU 弹窗点「允许」（可勾选记住）。
+> 实测：部分老固件不认 `persist.adb.tcp.port`，重启后 ADB 会关；让用户把「无双ADB」留在桌面，重启后点一下即可。
 
-> 本 skill 自带 `assets/prebuilt/ADB-Switch.apk`（minSdk 16 / Android 4.1+，源码在 `assets/adb-switch/`）。它的原理是用 root 执行 `setprop service.adb.tcp.port 5555; stop adbd; start adbd`。如果电视未 root，这条路走不通，改用路线 C。
+### 开好后验证 + 找 IP
 
-### 路线 C：root 手段（已 root 的电视）
-
-- 装一个终端类 App（或自写一个调用 `su` 的 APK），执行：
-  ```
-  su
-  setprop service.adb.tcp.port 5555
-  stop adbd
-  start adbd
-  ```
-- 或改 `/system/build.prop` 加 `persist.adb.tcp.port=5555`（**危险，改坏会开不了机，必须先备份**）。
-- 实测注意：部分老固件的 adbd **不认 `persist.adb.tcp.port`**，重启后 5555 还是会关；别承诺"开机自启"，让用户重启后手动点一次 ADB 开关 App。
-
-### 开好后的验证
+**电视重启后 IP 可能会变**（DHCP），永远不要假设还是上次那个 IP：
 
 ```bash
-adb connect <TV_IP>:5555
-adb devices          # 应显示 <TV_IP>:5555  device（不是 offline / unauthorized）
+python scripts/adb.py discover        # 扫描本网段，找开 5555/8555 的设备
+adb connect <发现的IP>:5555
 adb shell getprop ro.build.version.sdk
 ```
 
@@ -98,177 +112,190 @@ adb shell getprop ro.build.version.sdk
 老电视的 ADB 往往"看起来能用，实际到处受限"，先做能力探测：
 
 ```bash
-adb shell su -c id                          # 是否拿到 uid=0。拿不到先让用户在 SuperSU 里设"默认访问=授予"
-adb shell getprop ro.build.version.sdk      # 记录 API level
-adb shell screencap -p /sdcard/t.png        # 非 root 可能生成 0 字节文件；用 su -c 再试
-adb shell dumpsys window windows | grep mCurrentFocus   # 当前前台窗口
+adb shell su -c id                          # 是否拿到 uid=0
+adb shell getprop ro.build.version.sdk
+adb shell screencap -p /sdcard/t.png        # 非 root 可能是 0 字节，用 su -c 再试
+adb shell dumpsys window windows | grep mCurrentFocus
 ```
 
 已封装的命令直接用 `scripts/adb.py`（自动拼接 adb 路径，支持 root）：
 
 ```bash
-python scripts/adb.py connect 192.168.2.163
-python scripts/adb.py cap  home.png          # root 截图并拉回
-python scripts/adb.py key 3                  # HOME
-python scripts/adb.py tap 961 950            # 坐标点击（配合截图）
-python scripts/adb.py text 192.168.2.207     # 只支持 ASCII；中文输入要改用系统输入法/鼠标
+python scripts/adb.py connect 192.168.2.121
+python scripts/adb.py discover                # 重启后 IP 变了，先扫
+python scripts/adb.py cap  home.png
+python scripts/adb.py key 3                   # HOME
+python scripts/adb.py tap 961 950
+python scripts/adb.py text 192.168.2.207      # 仅 ASCII
 python scripts/adb.py launch com.synology.dsvideo
-python scripts/adb.py install-app app.apk    # 优先 adb install，失败自动回退 su -c pm install
-python scripts/adb.py disable com.ktcp.video # pm disable-user
+python scripts/adb.py install-app app.apk     # 失败自动回退 su -c pm install
+python scripts/adb.py disable com.ktcp.video
 python scripts/adb.py enable  com.ktcp.video
+python scripts/adb.py find-push <IP>          # 找当贝远程推送端口
+python scripts/adb.py upload http://<IP>:8555 app.apk   # 无双ADB 推送页
 ```
 
 **三个常见封锁与绕过：**
 
 | 现象 | 原因 | 绕过 |
 |---|---|---|
-| `adb install` 报 `INSTALL_PACKAGES` 权限拒绝 | 定制 ROM 不给 shell 安装权限 | `adb push` 到 `/data/local/tmp`，再 `adb shell su -c "pm install -r /data/local/tmp/x.apk"` |
-| `am start` 报 `INTERACT_ACROSS_USERS_FULL` 或 NullPointerException | 厂商改坏了 am | 用 `su -c am start ...`，或用 `monkey -p <pkg> -c android.intent.category.LAUNCHER 1` |
-| `screencap` 得到 0 字节 / `uiautomator dump` 失败 | 权限或 ROM 阉割 | `su -c 'screencap -p /sdcard/x.png'`；uiautomator 不可用就纯截图 + 坐标点击 |
+| `adb install` 报 `INSTALL_PACKAGES` 权限拒绝 | 定制 ROM 不给 shell 安装权限 | `adb push` 到 `/data/local/tmp`，再 `su -c "pm install -r ..."` |
+| `am start` 报 `INTERACT_ACROSS_USERS_FULL` / NPE | 厂商改坏了 am | `su -c am start ...` 或 `monkey -p <pkg> -c android.intent.category.LAUNCHER 1` |
+| `screencap` 0 字节 / `uiautomator dump` 失败 | 权限或 ROM 阉割 | `su -c 'screencap -p /sdcard/x.png'`；改用截图 + 坐标点击 |
 
-**用截图驱动 UI 的基本功**：截屏 → 用图片坐标换算出设备坐标（预览图 1708×961 对应 1920×1080 时约 ×1.124）→ `input tap x y`；文本输入用 `input text`（ASCII），中文/密码可以让用户自己在电视上输，或用系统输入法。
+**用截图驱动 UI**：截屏 → 换算坐标（预览 1708×961 对 1920×1080 约 ×1.124）→ `input tap x y`；`input text` 只支持 ASCII。
 
 ## 阶段 3：找兼容老系统的 App（最关键的活）
 
-**判断标准只看 `minSdk`**（用 SDK 的 `aapt dump badging x.apk | grep sdkVersion`，或 `scripts/check_apk.py x.apk`）：
+**判断标准只看 `minSdk`**（`python scripts/check_apk.py x.apk` 或 `aapt dump badging`）：
 
-- 电视 API 18（Android 4.3）→ 只能装 `sdkVersion ≤ 18` 的 APK；
-- 电视 API 19（4.4）→ ≤19；API 21（5.0）→ ≤21。
+- API 18（Android 4.3）→ 只能装 `sdkVersion ≤ 18`；API 19 → ≤19；API 21 → ≤21。
 
-**最新版通常装不上**（微信/爱奇艺/B站/群晖手机版最新都要 API 23~26）。策略：
+策略：
 
-1. 先试 **TV 版**：TV 版（如银河奇异果、云视听极光、云视听小电视）对老系统更宽容，minSdk 常是 16~18。
-2. TV 版不行/没有 → 找**手机版的历史版本**，按 `minSdk` 挑：
-   - 豌豆荚历史版本页：`https://www.wandoujia.com/apps/<id>/history`，每个版本页里的下载直链带 `minSDK=` 参数，可直接筛；
-   - k73 等国产下载站（`k.197947.com` 直链，国内速度尚可）；
-   - 下载慢用 `scripts/pardl.py <url> <out> 8` 多线程分段下载（Cloudflare 单连接约 80KB/s，8 线程可到数 MB/s）。
-3. 装之前先 `check_apk.py` 确认 minSdk 和 ABI（老电视基本是 `armeabi-v7a`，`armeabi` 也兼容；**纯 arm64** 的包装不上/跑不了）。
-4. 装完立刻启动看截图与 logcat；闪退就 `adb logcat -d | grep -E "AndroidRuntime|FATAL"` 找原因（常见是调用了更高 API 的方法，如 `ActivityOptions.makeSceneTransitionAnimation`、`KeyPairGeneratorSpec.Builder.setKeySize`）。
-5. 登录类 App（DS video 等）：手机版界面可以用 `input tap` + `input text` 帮用户把**地址/账号/密码**填好，勾选"记住登录状态"，之后用户点图标就能直接用；播放一般会交给系统播放器（弹出"选择应用"），选 TV 自带播放器并在弹窗点「始终」。
+1. 先试 **TV 版**（银河奇异果 `com.gitvdemo.video`、云视听极光 `com.ktcp.video`、云视听小电视 `com.xiaodianshi.tv.yst` 等，minSdk 常 16~18）。
+2. 没有/太新 → 找**手机版历史版本**：
+   - 豌豆荚历史页 `https://www.wandoujia.com/apps/<id>/history`，版本直链里带 `minSDK=`；
+   - k73 等国产站的 `k.197947.com` 直链；
+   - 慢时用 `python scripts/pardl.py <url> out.apk 8` 多线程下载。
+3. 装前确认 minSdk 和 ABI（老电视是 `armeabi-v7a`/`armeabi`，纯 arm64 不行）。
+4. 装完立刻启动 + `logcat -d | grep -E "AndroidRuntime|FATAL"` 看崩溃；常见是高 API 调用（`ActivityOptions.makeSceneTransitionAnimation`、`KeyPairGeneratorSpec.Builder.setKeySize`）。
+5. 登录类 App：截图 + `input tap` + `input text` 帮用户填地址/账号/密码，勾"记住登录"；播放交给系统播放器并点「始终」。
 
-DS video 的实测兼容表（可作为"手机版降级"范例）：
+DS video 实测兼容表：
 
 | 版本 | minSdk | 结论 |
 |---|---|---|
-| DS video TV 1.1.8 / 1.1.7 | 21 | Android 5.0+，4.3 装不上（硬改 minSdk 后能装但登录崩：`KeyPairGeneratorSpec.Builder.setKeySize` 是 API 19） |
-| DS video 手机版 3.4.7 / 3.4.5 | 26 / 23 | 装不上 |
-| DS video 手机版 **3.3.3** | **16** | ✅ 4.3 可用，手机界面 + 外部播放器 |
+| TV 1.1.8 / 1.1.7 | 21 | 4.3 装不上；硬改 minSdk 后登录崩（API 19 方法） |
+| 手机版 3.4.7 / 3.4.5 | 26 / 23 | 装不上 |
+| 手机版 **3.3.3** | **16** | ✅ 4.3 可用，手机界面 + 外部播放器 |
 
-更多来源、API 对照与下载技巧见 `references/app-version-hunting.md`。
+更多见 `references/app-version-hunting.md`。
 
-## 阶段 4：自制极简桌面（换掉广告桌面）
+## 阶段 4：换成「无双桌面」
 
-**为什么不直接装第三方桌面**：当贝桌面等也带推荐位/广告；老机器上还容易卡。最干净的是自己写一个几十 KB 的 HOME App。
+为什么不用第三方桌面：当贝桌面等也有推荐位/广告。自制桌面只有 17KB、纯 Java、无网络权限。
 
-本 skill 自带预编译 `assets/prebuilt/SimpleHome.apk`（minSdk 16）和源码 `assets/simple-home/`（纯 Java，无网络权限）：
+`assets/prebuilt/WushuangDesktop.apk`（包名 `com.wushuang.desktop`，minSdk 16）特性：
 
-- 深色背景 + 圆角卡片 + 统一 64dp 图标 + 焦点蓝框放大 + 右上角 24 小时时钟/日期；
-- 默认 7 个卡片（可在 `DEFAULT_TILES` 改），**「＋」打开已安装应用列表添加**，**长按卡片移除**，配置存 SharedPreferences；
-- 应用未安装时自动隐藏对应卡片（升级/卸载不会留下死图标）。
+- 深色渐变 + 圆角卡片 + 统一 64dp 图标 + 焦点蓝框放大 + 右上角 24 小时时钟/日期；
+- 左上角标题「无双桌面」；
+- 默认卡片：DS video、银河奇异果、云视听极光、云视听小电视、当贝市场、设置、**无双ADB**；
+- 「＋」从已安装应用里添加、长按卡片移除、应用卸载后自动隐藏卡片。
 
-**替换成默认桌面的正确顺序（Android 4.3 没有 `pm set-home-activity`）：**
+**切换默认桌面的正确顺序（Android 4.3 没有 `pm set-home-activity`）：**
 
-1. `adb install` 或 `su -c pm install` 装好自制桌面；
-2. `su -c am start -n com.dsh.simplehome/.MainActivity` 先手动启动，确认不闪退；
-3. 停用原桌面：`su -c pm disable-user --user 0 <原桌面包名>`（乐视为 `com.stv.launcher`），再 `am force-stop`；
-4. **重启电视**；因为没有其他 HOME 了，系统会自动把自制桌面当默认（实测 4.3 上重启后生效）。
-5. 验证：`dumpsys window windows | grep mCurrentFocus` 应显示自制桌面。
+1. 先装好 `WushuangDesktop.apk`（新包名，不影响当前桌面）；
+2. 启动一次确认不闪退：`su -c am start -n com.wushuang.desktop/.MainActivity`；
+3. 启用原桌面当兜底：`su -c pm enable com.stv.launcher`；
+4. 停用旧桌面：`su -c pm disable com.dsh.simplehome`（或旧版桌面包名）；
+5. 再停用原桌面：`su -c pm disable-user com.stv.launcher`；
+6. **重启电视**（让系统重建默认 HOME 偏好）；重启后唯一的 HOME 就是无双桌面；
+7. 验证：`dumpsys window windows | grep mCurrentFocus` 应显示 `com.wushuang.desktop`。
 
-**风险控制**：不要把自制桌面的安装包卸载（否则开机没有桌面）；提前把原桌面包名记下来，恢复命令是 `su -c pm enable <原桌面包名>`。自制桌面要能处理 `onBackPressed`（Home 键回到自己），并做"应用不存在就跳过分组"的健壮性处理，避免老机器上 ANR。
+**HOME 键不灵怎么办**：有的老 ROM 注入的 HOME 键不触发默认桌面，但遥控器实体主页键可能正常；如果用户反馈按主页没反应，重启一次电视多半就好（开机时只启用了一个 HOME，系统会设为默认）。
 
-> **实测警告**：部分老 ROM（乐视 4.3 已验证）在**替换/卸载正在运行的唯一 HOME** 时会触发 system_server 重启 → 黑屏 + ADB 掉线 + 网络断开，安装被中断。稳妥顺序：原桌面还在时先装好新桌面并确认能启动 → 再停用原桌面 → 重启；**永远不要让自己处于"只有自制桌面、还要覆盖安装它"的状态**。真遇到了：等系统自己重启完（桌面通常还在），或断电重启；若确实没有桌面了，用 `pm enable <原桌面>` / 重装自制桌面恢复。
+**风险控制**：
+- 不要把无双桌面卸载/覆盖安装（它是唯一 HOME 时会导致黑屏）。
+- 原桌面包名先记下来，恢复命令 `su -c pm enable <原桌面包名>`。
+- 实测：**替换/卸载正在运行的唯一 HOME** 可能触发 system_server 重启（黑屏 + ADB 掉线 + 网络断），所以按上面"先装新桌面 → 再停旧桌面 → 重启"的顺序做。
 
 ## 阶段 5：去广告 / 精简（`pm disable-user`，可逆）
 
-原则：**只停应用、不删系统文件、不做危险 mount**。先备份：
+先备份：
 
 ```bash
 adb shell pm list packages > packages-before.txt
 adb shell pm list packages -d > disabled-before.txt
 ```
 
-按"先广告/统计、后预装娱乐、再系统服务"的顺序小批量停用，每批之后重启验证。乐视 4.3 实测可用清单（包名可能因固件不同）：
+小批量停用，每批重启验证。乐视 4.3 实测清单：
 
 ```text
 com.stv.reportService           # 统计上报
 com.stv.bootadmanager           # 开机广告
-com.amap.android.location       # 高德定位（广告用）
+com.amap.android.location       # 高德定位
 com.system.wcrash               # 崩溃上报
 com.le.lepay.tv                 # 乐视支付
 com.stv.lap.alitvbuy            # 阿里购物
 com.android.browser             # 自带浏览器
-com.ktcp.video                  # 腾讯视频（要装 TV 版时再 enable）
+com.ktcp.video                  # 腾讯视频（要装时再 enable）
 sina.mobile.tianqitongstv       # 天气
-com.android.gallery3d           # 相册（不用可停）
+com.android.gallery3d           # 相册（按需）
 ```
 
-- 开机视频：`/tvconfig/video.ts`（有的 ROM 已删；删前先 `ls` 确认，改名为 `.bak` 更稳）。
-- 系统更新：停 `SystemUpgrade`（包名以固件为准），避免被强制升级。
-- 恢复：`su -c pm enable <包名>`；或按 `disabled-before.txt` 批量恢复。
-- **别停**：`com.android.systemui`、`com.android.providers.*`、`com.android.packageinstaller`、输入法、设置、SuperSU、以及负责遥控/HDMI/信号源的厂商服务。
+- 开机视频：`/tvconfig/video.ts`（有的 ROM 已删；改名 `.bak` 更稳）。
+- 恢复：`su -c pm enable <包名>`，或按 `disabled-before.txt` 批量恢复。
+- **别停**：`com.android.systemui`、`com.android.providers.*`、`com.android.packageinstaller`、输入法、设置、SuperSU、遥控/HDMI/信号源相关厂商服务。
 
 ## 阶段 6：验证与收尾
 
-- 重启电视，验证：桌面正常、App 能打开、遥控器 HOME/返回正常、无开机广告。
-- 安全：网络 ADB 是明文 5555，折腾完让用户在 ADB 开关 App 里点"关闭 ADB"，或 `su -c "setprop service.adb.tcp.port -1; stop adbd; start adbd"`。
-- 把备份文件（包列表、停用列表、原桌面包名、App 版本号）留在电脑上，告诉用户恢复方法。
-- 如果折腾成本已经超过买盒子：直接建议外接 Android 9+ 盒子，电视当显示器。
+- **重启电视验证**：桌面正常、App 能开、遥控主页/返回正常、无开机广告；重启后先用 `adb.py discover` 重新确认电视 IP（会变）。
+- 无双ADB 的推送服务/自动 ADB 依赖开机广播：**装完必须打开过一次 App**；验证：重启后浏览器打开 `http://<新IP>:8555/` 能否出页面。
+- 安全：网络 ADB 和无双ADB 推送页都是**明文、无密码**，只在家用局域网开；折腾完在无双ADB里点「关闭 ADB」「停止推送」。
+- 把备份（包列表、停用列表、原桌面包名、App 版本号、电视 IP）留给用户。
+- 如果折腾成本超过买盒子：建议外接 Android 9+ 盒子，电视当显示器。
 
-## 常见坑（都是实测踩过的）
+## 常见坑（实测）
 
-1. **EUI 版本 ≠ Android 版本**；`ro.build.version.sdk=18` 才是真相。
-2. **工程菜单里没有 ADB 开关**：MStar 工厂菜单只有 Uart Enable；换当贝远程推送 + ADB 开关 APK。
-3. **当贝远程推送端口会变**（5002→5003），且页面关闭后端口消失；每次重新打开页面后重新扫描。
-4. **`adb install` 被拒**：走 `su -c pm install`。
-5. **`am start` 被 ROM 改坏**：走 `su -c am start` 或 `monkey`。
-6. **非 root `screencap` 出 0 字节**；`uiautomator dump` 可能直接报权限错。
-7. **`input text` 不支持中文**；中文输入交给用户或用输入法。
-8. **老机器别装重型 App**：Kodi 16 在这类 2GB/4 核 A9 电视上能把 system_server 拖死机。推荐"DS video + 系统播放器"这种轻组合。
-9. **系统卡死时**：先 `adb reboot`，不行再 `su -c reboot`；都无响应就让用户拔电源 10 秒（死机断电不会变砖，别在刷机中断时拔）。
-10. **刷机包不要乱刷**：第三方"精简 ROM"只能换皮，Android 版本不变；刷错平台/签名会变砖，救砖要 UART/编程器。
+1. **EUI 版本 ≠ Android 版本**；`ro.build.version.sdk` 才是真相。
+2. **工程菜单可能没有 ADB 开关**（MStar 工厂菜单只有 Uart Enable）→ 用无双ADB。
+3. **当贝远程推送端口会变**（5002→5003）→ `adb.py find-push`，或直接用无双ADB 的 8555。
+4. **`adb install` 被拒** → `su -c pm install`。
+5. **`am start` 被改坏** → `su -c am start` 或 `monkey`。
+6. **非 root `screencap` 0 字节 / uiautomator 权限错**。
+7. **`input text` 不支持中文**。
+8. **老机器别装重型 App**：Kodi 16 能把 system_server 拖死。
+9. **电视重启后 IP 会变**：每次重连前 `adb.py discover`，不要硬编码旧 IP。
+10. **无双ADB 装完要先打开一次**，否则开机广播收不到（推送服务/自动 ADB 不生效）。
+11. **替换唯一 HOME 可能触发系统服务重启**：先装新桌面再停旧桌面，必要时重启。
+12. **刷机包不要乱刷**：第三方精简包只换皮；刷错平台/签名会变砖。
 
 ## 复用预编译 APK（推荐：AI 没有 Android SDK/JDK 时）
 
-`assets/prebuilt/` 里已经放了编译好、签名好的两个 APK，**直接安装即可，不需要现场用 Android SDK 编译**：
+`assets/prebuilt/` 里是编译并签名好的 APK，直接装，不需要现场编译：
 
 | APK | 版本 | minSdk | 说明 |
 |---|---|---|---|
-| `ADB-Switch.apk` | 1.3 | 16（Android 4.1+） | 一键开/关网络 ADB；**必须已 root** |
-| `SimpleHome.apk` | 10.0 | 16（Android 4.1+） | 极简 HOME 桌面；装 App 不需要 root，但"停用原桌面"这一步通常要 root |
+| `WushuangADB.apk` | 1.0 | 16（Android 4.1+） | 信息/开ADB/推送装包卸载；需 root |
+| `WushuangDesktop.apk` | 11.0 | 16（Android 4.1+） | 无双桌面 HOME App；装它不需要 root，替换默认桌面需要 |
 
-推荐流程：`adb.py upload` / 当贝远程推送 → 电视上点安装 → ADB 开关 App 开 ADB → 装 SimpleHome → 停原桌面 → 重启。
+推荐流程：U 盘/文件管理器装无双ADB → 打开允许 root → 浏览器 `http://<IP>:8555/` 装其余 APK → 装无双桌面 → 停旧桌面 → 重启。
 
-只有这些情况才需要改源码重编（`scripts/build_assets.ps1`）：
+只有这些情况才改源码重编（`scripts/build_assets.ps1`）：
 
-1. 电视 API **低于 16**（Android 4.0 及以下，极少见）：`-MinSdk 14` 重编；
-2. 想改默认卡片/图标/配色：改 `assets/simple-home/.../MainActivity.java` 的 `DEFAULT_TILES` 等常量；
-3. 想改 ADB 开关执行的命令或端口。
+1. 电视 API **< 16**：`-MinSdk 14` 重编；
+2. 改默认卡片/图标/配色：改 `assets/wushuang-desktop/.../MainActivity.java` 的 `DEFAULT_TILES`；
+3. 改 ADB 命令、推送端口等：改 `assets/wushuang-adb/` 源码。
 
-> 关键点：**不要默认"现场编译 APK"**。不是每个 AI 环境都有 JDK 17-22 + Android SDK 34/35；预编译 APK 让 skill 在只有 adb + curl 的环境里也能跑完整流程。
+> **不要默认"现场编译 APK"**：不是每个 AI 环境都有 JDK 17-22 + Android SDK；预编译 APK 让 skill 在只有 adb + curl 的环境也能跑完整流程。
 
 ## 自带资产与脚本
 
 | 路径 | 用途 |
 |---|---|
-| `assets/prebuilt/ADB-Switch.apk` | 一键开 ADB（需 root，minSdk 16），当贝远程推送安装 |
-| `assets/prebuilt/SimpleHome.apk` | 极简桌面（minSdk 16），可改源码重编译 |
-| `assets/adb-switch/`、`assets/simple-home/` | 两个 App 的完整源码 |
-| `scripts/adb.py` | TV 控制助手（connect/cap/key/tap/text/launch/install/disable/enable/find-push） |
-| `scripts/check_apk.py` | 纯 Python 检查 APK 的 package / minSdk / versionName / ABI |
-| `scripts/pardl.py` | 多线程分段下载 APK（绕开单连接限速） |
-| `scripts/build_assets.ps1` | 用 Android SDK 重新编译两个 APK |
-| `references/` | 详细 playbook、ADB 速查、找旧版方法、乐视 918 背景、排错 |
+| `assets/prebuilt/WushuangADB.apk` | 无双ADB（信息/开ADB/局域网装包卸载，minSdk 16） |
+| `assets/prebuilt/WushuangDesktop.apk` | 无双桌面（minSdk 16） |
+| `assets/wushuang-adb/`、`assets/wushuang-desktop/` | 两个 App 的完整源码 |
+| `assets/signing/debug.keystore` | 固定签名密钥（别名 androiddebugkey / 口令 android），保证重编可覆盖升级 |
+| `scripts/adb.py` | TV 控制助手（connect/discover/cap/key/tap/text/launch/install/disable/enable/find-push/upload） |
+| `scripts/check_apk.py` | 纯 Python 读 package / minSdk / versionName / ABI |
+| `scripts/pardl.py` | 多线程分段下载 APK |
+| `scripts/build_assets.ps1` | 用 Android SDK 重编两个 APK |
+| `references/` | playbook、ADB 速查、找旧版方法、乐视 918 背景、排错 |
 
 ## 作者与版本
 
-- 版本：**V1.0**
+- 版本：**V1.1**
 - 作者：**B站-锤无双**
 - 交流 QQ 群：**170621740**
+- V1.1 新增：无双ADB（信息/开ADB/局域网推送装包卸载/开机自启）、无双桌面改名、固定签名密钥、IP 变化自动发现、HOME 键坑位说明。
 - 欢迎补充新机型与新 App 版本（提 Issue / PR 即可）。
 
 ## 安全与免责
 
 - 只在用户自己的设备上操作，并事先说明风险（停用系统服务、替换桌面、断电重启）。
+- 无双ADB 的 8555 推送页和 ADB 5555 都是明文无鉴权，只在家用局域网临时开启，用完关闭。
 - 不删系统分区、不刷不明来源的 bin、不 root 新设备（用户机器已 root 才用 root 方案）。
 - 不收集/不外传用户账号密码；帮用户登录时只在电视本地输入，不写入任何文件。
 - 本项目无厂商固件/签名密钥，全部依赖设备本身开放的调试能力。

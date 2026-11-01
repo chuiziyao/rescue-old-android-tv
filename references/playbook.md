@@ -49,13 +49,22 @@ ro.build.version.sdk=18
 
 ## 2. 开 ADB
 
+### 2.0 无双ADB（首选，一个 APK 全搞定）
+
+1. U 盘拷 `assets/prebuilt/WushuangADB.apk` → 电视「文件管理」安装（没 U 盘就先用 2.2 的当贝推送把它推进去）；
+2. 打开「无双ADB」→ SuperSU 允许；
+3. App 自动开 ADB 并启动推送服务，屏幕显示 Android 版本 / API / 型号 / 平台 / 内核 / IP / Root / ADB 端口，以及 `推送地址: http://<电视IP>:8555/`；
+4. 电脑浏览器打开推送地址：上传 APK 自动安装、网页按钮卸载（装包/卸载需要 root）。
+
+> 装完必须先打开一次，开机广播（自动 ADB + 推送服务）才会生效。推送页和 ADB 都是明文无鉴权，用完点「停止推送」「关闭 ADB」。
+
 ### 2.1 先试工程菜单
 
 - 乐视：`信号源 → 2580 → 其他选项 → ADB 调试 → 开启 → 重启`。
 - 其它品牌见 `references/adb-cheatsheet.md`。
 - 如果菜单里根本没有 ADB（精简 ROM 常见），进下一节。
 
-### 2.2 当贝市场远程推送（无 ADB 时的通道）
+### 2.2 当贝市场远程推送（无 ADB、也无 U 盘时的通道）
 
 1. 电视打开 **当贝市场 → 我的 → 远程推送**，记下屏幕上的 `IP:端口`。
 2. PC 上扫描并确认页面：
@@ -65,15 +74,13 @@ ro.build.version.sdk=18
 python scripts/adb.py find-push 192.168.2.163
 ```
 
-3. 上传自带的 ADB 开关：
+3. 上传自带的 WushuangADB：
 
 ```bash
-curl -F "file1=@assets/prebuilt/ADB-Switch.apk;filename=ADB-Switch.apk;type=application/vnd.android.package-archive" \
-     http://192.168.2.163:5002/upload
-# 期望返回：ok
+python scripts/adb.py upload http://<IP>:<PORT> assets/prebuilt/WushuangADB.apk
 ```
 
-4. 电视弹安装框 → 安装 → 打开「ADB开关」→ 点「一键开启 ADB」→ SuperSU 允许。
+4. 电视弹安装框 → 安装 → 打开「无双ADB」→ 点「一键开启 ADB」→ SuperSU 允许。
 5. PC 验证：`python scripts/adb.py connect <IP>`，`adb devices` 出现 `device`。
 
 ### 2.3 root 终端兜底
@@ -85,14 +92,15 @@ stop adbd
 start adbd
 ```
 
-> **重要实测结论**：某些老固件不读取 `persist.adb.tcp.port`，开机自启无效。稳妥做法是让用户把「ADB开关」App 留在桌面，每次重启后点一下。
+> **重要实测结论**：某些老固件不读取 `persist.adb.tcp.port`，开机自启无效。稳妥做法是让用户把「无双ADB」App 留在桌面，每次重启后点一下。
 
 ---
 
 ## 3. 建立控制通道
 
 ```bash
-python scripts/adb.py connect 192.168.2.163
+python scripts/adb.py discover               # 电视重启过？IP 可能变了，先扫
+python scripts/adb.py connect 192.168.2.121
 adb shell getprop ro.build.version.sdk     # 记录 API
 adb shell su -c id                          # 期望 uid=0
 ```
@@ -153,9 +161,9 @@ adb logcat -d -v brief | grep -E "AndroidRuntime|FATAL|ActivityManager.*START"
 
 ---
 
-## 5. 自制极简桌面
+## 5. 自制无双桌面
 
-1. 源码在 `assets/simple-home/`，可改 `DEFAULT_TILES`、颜色、列数；
+1. 源码在 `assets/wushuang-desktop/`，可改 `DEFAULT_TILES`、颜色、列数；
 2. 用 `scripts/build_assets.ps1` 编译（需要 JDK 17-22 + Android SDK platform 34/35 + build-tools）；
 3. 安装并手动启动确认不闪退；
 4. 停用原桌面（乐视 `com.stv.launcher`）→ 重启；

@@ -80,8 +80,8 @@ function Build-Apk([string]$srcDir, [string]$pkgPath, [string]$outName) {
             --manifest AndroidManifest.xml -R compiled_res.zip --java gen `
             --min-sdk-version $MinSdk --target-sdk-version 18 --auto-add-overlay
         New-Item -ItemType Directory -Force -Path classes | Out-Null
-        $java = @("src\$pkgPath\MainActivity.java")
-        if (Test-Path "gen\$pkgPath\R.java") { $java += "gen\$pkgPath\R.java" }
+        $java = @(Get-ChildItem -Path "src" -Recurse -Filter *.java | ForEach-Object { $_.FullName })
+        if (Test-Path "gen\$pkgPath\R.java") { $java += (Get-ChildItem "gen\$pkgPath\R.java").FullName }
         & (Join-Path $jdk "bin\javac.exe") -source 8 -target 8 -bootclasspath $androidJar `
             -d classes @java
         & (Join-Path $jdk "bin\jar.exe") cf classes.jar -C classes .
@@ -109,6 +109,6 @@ with zipfile.ZipFile(src) as zin, zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) 
     }
 }
 
-Build-Apk (Join-Path $root "assets\adb-switch") "com\dsh\adbhelper" "ADB-Switch.apk"
-Build-Apk (Join-Path $root "assets\simple-home") "com\dsh\simplehome" "SimpleHome.apk"
+Build-Apk (Join-Path $root "assets\wushuang-adb") "com\wushuang\adb" "WushuangADB.apk"
+Build-Apk (Join-Path $root "assets\wushuang-desktop") "com\wushuang\desktop" "WushuangDesktop.apk"
 Write-Host "全部完成，输出目录: $OutDir"

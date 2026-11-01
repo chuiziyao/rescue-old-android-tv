@@ -1,4 +1,4 @@
-package com.dsh.simplehome;
+package com.wushuang.desktop;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
             "com.xiaodianshi.tv.yst",
             "com.dangbeimarket",
             "com.stv.t2.globalsetting",
-            "com.dsh.adbhelper"
+            "com.wushuang.adb"
     };
 
     private float density;
@@ -106,7 +106,7 @@ public class MainActivity extends Activity {
         header.setGravity(Gravity.CENTER_VERTICAL);
 
         TextView title = new TextView(this);
-        title.setText("我家电视");
+        title.setText("无双桌面");
         title.setTextColor(0xFF7B8A99);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
         LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0,

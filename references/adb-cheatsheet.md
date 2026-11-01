@@ -54,6 +54,8 @@ adb disconnect && adb connect <IP>:5555
 | 录屏 | 老 ROM 基本不支持 `screenrecord`，别浪费时间 |
 | 读取 build.prop | `adb shell su -c "cat /system/build.prop" \| grep -E "version|board"` |
 | 当前前台 | `adb shell su -c "dumpsys window windows" \| grep mCurrentFocus` |
+| 无双ADB 推送页 | 浏览器打开 `http://<电视IP>:8555/`；网页上传 APK 自动安装、按钮卸载（需 root） |
+| 找电视 IP（重启后） | `python scripts/adb.py discover`（扫本网段 5555/8555） |
 
 ## 4. 模拟遥控器/触摸
 

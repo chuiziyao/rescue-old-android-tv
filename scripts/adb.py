@@ -14,6 +14,8 @@
   python adb.py disable com.ktcp.video
   python adb.py enable com.ktcp.video
   python adb.py find-push 192.168.2.163   # 扫描当贝市场远程推送端口(4995-5011)
+python adb.py discover                  # 扫描本网段 5555/8555，电视重启换 IP 后用
+python adb.py upload http://192.168.2.163:8555 app.apk   # 无双ADB 推送页安装
   python adb.py upload http://192.168.2.163:5002 ADB-Switch.apk
   python adb.py shell "getprop ro.build.version.sdk"
 
@@ -181,6 +183,48 @@ def cmd_upload(base, path):
         sys.exit("上传失败: %s" % e)
 
 
+def cmd_discover():
+    """扫描本机所在 /24 网段，找开着 5555（ADB）或 8555（无双ADB推送）的电视。"""
+    import concurrent.futures
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        local = s.getsockname()[0]
+    except Exception:
+        local = "192.168.1.10"
+    finally:
+        s.close()
+    prefix = local.rsplit(".", 1)[0] + "."
+    print("本机网段:", prefix + "0/24")
+
+    def chk(args):
+        ip, port = args
+        sock = socket.socket()
+        sock.settimeout(0.35)
+        try:
+            sock.connect((ip, port))
+            return (ip, port)
+        except Exception:
+            return None
+        finally:
+            sock.close()
+
+    targets = [(prefix + str(i), p) for i in range(1, 255) for p in (5555, 8555)]
+    found = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=400) as ex:
+        for r in ex.map(chk, targets):
+            if r:
+                found.append(r)
+    if not found:
+        print("没找到开 5555/8555 的设备；确认电视已开机、ADB/推送已开")
+        return
+    by_ip = {}
+    for ip, port in sorted(found):
+        by_ip.setdefault(ip, []).append(port)
+    for ip, ports in by_ip.items():
+        print("%-15s ports=%s" % (ip, ports))
+
+
 def cmd_find_push(ip):
     ports = []
     for p in range(4995, 5012):
@@ -264,6 +308,8 @@ def main(argv):
         print(shell("pm list packages " + (" ".join(a) if a else ""), root=False)[1])
     elif c == "find-push":
         cmd_find_push(a[0])
+    elif c == "discover":
+        cmd_discover()
     elif c == "upload":
         cmd_upload(a[0], a[1])
     elif c == "shell":
