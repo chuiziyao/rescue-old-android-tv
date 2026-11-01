@@ -3,7 +3,7 @@
 > 一个给 AI Agent（以及折腾老电视的人）用的操作手册 + 工具包：把 Android 4.x 的老国产电视从"什么都装不上、满屏广告"救回可用状态。
 
 [![Android](https://img.shields.io/badge/Android-4.x-brightgreen)](#)
-[![minSdk](https://img.shields.io/badge/APK%20minSdk-16~18-blue)](#)
+[![minSdk](https://img.shields.io/badge/APK%20minSdk-16%2B-blue)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > **版本 V1.0** ｜ 作者：**B站-锤无双** ｜ 交流 QQ 群：**170621740**
@@ -45,7 +45,7 @@ rescue-old-android-tv/
 │   └── axml_patch.py           # 高级：硬改 minSdk（风险操作）
 ├── assets/
 │   ├── prebuilt/ADB-Switch.apk # 一键开 ADB（需 root）
-│   ├── prebuilt/SimpleHome.apk # 极简电视桌面（minSdk 18）
+│   ├── prebuilt/SimpleHome.apk # 极简电视桌面（minSdk 16）
 │   ├── adb-switch/             # ADB 开关 App 源码
 │   └── simple-home/            # 极简桌面源码
 └── README.md
@@ -70,6 +70,17 @@ python scripts/check_apk.py some.apk
 ```
 
 5. 按 `references/playbook.md` 换桌面、去广告、收尾。
+
+## 为什么要自带两个 APK（而不是让 AI 现场编译）
+
+不是每个 AI 运行环境都有 JDK 17-22 + Android SDK 34/35，但**任何能跑 adb 的环境**都能安装现成 APK。所以本仓库直接提供编译并签名好的：
+
+| APK | 版本 | minSdk | 用途 |
+|---|---|---|---|
+| `assets/prebuilt/ADB-Switch.apk` | 1.2 | 16（Android 4.1+） | 一键开/关网络 ADB（需 root） |
+| `assets/prebuilt/SimpleHome.apk` | 9.0 | 16（Android 4.1+） | 极简 HOME 桌面 |
+
+只有需要改默认卡片/图标/配色，或电视低于 Android 4.1 时，才需要用 `scripts/build_assets.ps1` 重新编译（源码在 `assets/` 下）。
 
 ## 自带工具说明
 

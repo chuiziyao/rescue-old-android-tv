@@ -3,5 +3,13 @@ __pycache__/
 *.pyc
 *.keystore
 *.log
+*.idsig
 .adb-tmp/
 temp/
+build/
+classes/
+dexout/
+gen/
+compiled_res.zip
+classes.jar
+app.*.apk

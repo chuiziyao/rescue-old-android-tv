@@ -71,7 +71,7 @@ curl -F "file1=@ADB-Switch.apk;filename=ADB-Switch.apk;type=application/vnd.andr
 
 4. 装好后打开 **「ADB开关」**，点「一键开启 ADB (5555)」，SuperSU 弹窗点「允许」（可勾选记住）。
 
-> 本 skill 自带 `assets/prebuilt/ADB-Switch.apk`（12KB，minSdk 18，源码在 `assets/adb-switch/`）。它的原理是用 root 执行 `setprop service.adb.tcp.port 5555; stop adbd; start adbd`。如果电视未 root，这条路走不通，改用路线 C。
+> 本 skill 自带 `assets/prebuilt/ADB-Switch.apk`（minSdk 16 / Android 4.1+，源码在 `assets/adb-switch/`）。它的原理是用 root 执行 `setprop service.adb.tcp.port 5555; stop adbd; start adbd`。如果电视未 root，这条路走不通，改用路线 C。
 
 ### 路线 C：root 手段（已 root 的电视）
 
@@ -160,7 +160,7 @@ DS video 的实测兼容表（可作为"手机版降级"范例）：
 
 **为什么不直接装第三方桌面**：当贝桌面等也带推荐位/广告；老机器上还容易卡。最干净的是自己写一个几十 KB 的 HOME App。
 
-本 skill 自带 `assets/simple-home/`（minSdk 18，纯 Java，无网络权限）：
+本 skill 自带预编译 `assets/prebuilt/SimpleHome.apk`（minSdk 16）和源码 `assets/simple-home/`（纯 Java，无网络权限）：
 
 - 深色背景 + 圆角卡片 + 统一 64dp 图标 + 焦点蓝框放大 + 右上角 24 小时时钟/日期；
 - 默认 7 个卡片（可在 `DEFAULT_TILES` 改），**「＋」打开已安装应用列表添加**，**长按卡片移除**，配置存 SharedPreferences；
@@ -225,12 +225,31 @@ com.android.gallery3d           # 相册（不用可停）
 9. **系统卡死时**：先 `adb reboot`，不行再 `su -c reboot`；都无响应就让用户拔电源 10 秒（死机断电不会变砖，别在刷机中断时拔）。
 10. **刷机包不要乱刷**：第三方"精简 ROM"只能换皮，Android 版本不变；刷错平台/签名会变砖，救砖要 UART/编程器。
 
+## 复用预编译 APK（推荐：AI 没有 Android SDK/JDK 时）
+
+`assets/prebuilt/` 里已经放了编译好、签名好的两个 APK，**直接安装即可，不需要现场用 Android SDK 编译**：
+
+| APK | 版本 | minSdk | 说明 |
+|---|---|---|---|
+| `ADB-Switch.apk` | 1.2 | 16（Android 4.1+） | 一键开/关网络 ADB；**必须已 root** |
+| `SimpleHome.apk` | 9.0 | 16（Android 4.1+） | 极简 HOME 桌面；装 App 不需要 root，但"停用原桌面"这一步通常要 root |
+
+推荐流程：`adb.py upload` / 当贝远程推送 → 电视上点安装 → ADB 开关 App 开 ADB → 装 SimpleHome → 停原桌面 → 重启。
+
+只有这些情况才需要改源码重编（`scripts/build_assets.ps1`）：
+
+1. 电视 API **低于 16**（Android 4.0 及以下，极少见）：`-MinSdk 14` 重编；
+2. 想改默认卡片/图标/配色：改 `assets/simple-home/.../MainActivity.java` 的 `DEFAULT_TILES` 等常量；
+3. 想改 ADB 开关执行的命令或端口。
+
+> 关键点：**不要默认"现场编译 APK"**。不是每个 AI 环境都有 JDK 17-22 + Android SDK 34/35；预编译 APK 让 skill 在只有 adb + curl 的环境里也能跑完整流程。
+
 ## 自带资产与脚本
 
 | 路径 | 用途 |
 |---|---|
-| `assets/prebuilt/ADB-Switch.apk` | 一键开 ADB（需 root，minSdk 18），当贝远程推送安装 |
-| `assets/prebuilt/SimpleHome.apk` | 极简桌面（minSdk 18），可改源码重编译 |
+| `assets/prebuilt/ADB-Switch.apk` | 一键开 ADB（需 root，minSdk 16），当贝远程推送安装 |
+| `assets/prebuilt/SimpleHome.apk` | 极简桌面（minSdk 16），可改源码重编译 |
 | `assets/adb-switch/`、`assets/simple-home/` | 两个 App 的完整源码 |
 | `scripts/adb.py` | TV 控制助手（connect/cap/key/tap/text/launch/install/disable/enable/find-push） |
 | `scripts/check_apk.py` | 纯 Python 检查 APK 的 package / minSdk / versionName / ABI |

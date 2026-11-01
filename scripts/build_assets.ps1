@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   重新编译 assets/adb-switch 与 assets/simple-home 两个 APK。
 
@@ -16,7 +16,8 @@
 param(
     [string]$AndroidSdk = "",
     [string]$Jdk = "",
-    [string]$OutDir = ""
+    [string]$OutDir = "",
+    [int]$MinSdk = 16
 )
 
 $ErrorActionPreference = "Stop"
@@ -75,7 +76,7 @@ function Build-Apk([string]$srcDir, [string]$pkgPath, [string]$outName) {
         & (Join-Path $btDir "aapt2.exe") compile --dir res -o compiled_res.zip
         & (Join-Path $btDir "aapt2.exe") link -o app.unsigned.apk -I $androidJar `
             --manifest AndroidManifest.xml -R compiled_res.zip --java gen `
-            --min-sdk-version 18 --target-sdk-version 18 --auto-add-overlay
+            --min-sdk-version $MinSdk --target-sdk-version 18 --auto-add-overlay
         New-Item -ItemType Directory -Force -Path classes | Out-Null
         $java = @("src\$pkgPath\MainActivity.java")
         if (Test-Path "gen\$pkgPath\R.java") { $java += "gen\$pkgPath\R.java" }
@@ -85,7 +86,7 @@ function Build-Apk([string]$srcDir, [string]$pkgPath, [string]$outName) {
         New-Item -ItemType Directory -Force -Path dexout | Out-Null
         $d8 = Join-Path $btDir "d8.bat"
         if (-not (Test-Path $d8)) { $d8 = Join-Path $btDir "d8" }
-        & $d8 --lib $androidJar --min-api 18 --output dexout classes.jar
+        & $d8 --lib $androidJar --min-api $MinSdk --output dexout classes.jar
 
         $py = (Get-Command python -ErrorAction SilentlyContinue).Source
         if (-not $py) { throw "需要 Python 3 来把 classes.dex 打进 APK" }
