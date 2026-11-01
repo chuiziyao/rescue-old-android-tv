@@ -1,14 +1,14 @@
 ---
 name: rescue-old-android-tv
 description: 拯救老安卓电视（Android 4.x 国产定制电视/盒子，如乐视、小米、创维、TCL 等）：用自带「无双ADB」一键看硬件信息、开 ADB、开局域网推送装包/卸载；按 minSdk 找兼容老系统的 App 版本；用手机版 App 绕过 TV 版限制；用自带「无双桌面」替换广告桌面；用 pm disable-user 去广告；并在不可行时给出电视盒子兜底方案。触发词：老电视、安卓电视、电视卡、电视去广告、换电视桌面、DS video、当贝市场、adb调试、乐视电视、刷机包、电视精简。
-version: 1.2.0
+version: 1.3.0
 author: B站-锤无双
 user-invocable: true
 argument-hint: "[电视IP]"
 metadata:
   short-description: 老安卓电视抢救指南（无双ADB/无双桌面/兼容App/去广告）
   author: B站-锤无双
-  version: V1.2
+  version: V1.3
   qq-group: "170621740"
 ---
 
@@ -193,7 +193,13 @@ DS video 实测兼容表：
 6. **重启电视**（让系统重建默认 HOME 偏好）；重启后唯一的 HOME 就是无双桌面；
 7. 验证：`dumpsys window windows | grep mCurrentFocus` 应显示 `com.wushuang.desktop`。
 
-**HOME 键不灵怎么办**：有的老 ROM 注入的 HOME 键不触发默认桌面，但遥控器实体主页键可能正常；如果用户反馈按主页没反应，重启一次电视多半就好（开机时只启用了一个 HOME，系统会设为默认）。
+**HOME 键为什么不灵（乐视实测）**：乐视在 `system_server` 里塞了 `letv.desktop.DesktopManager`，`PhoneWindowManager.launchHomeFromHotKey()` 不走标准 HOME 解析，而是直接 `startActivity(com.stv.launcher/.activity.Launcher)`。原桌面被停用后它抛 `NullPointerException`（logcat: `Error while switching to desktop`），HOME 键就"空按"；按返回键退出应用则正常回到无双桌面（任务栈行为）。
+
+可选处理：
+- **A（推荐）**：接受"按遥控器返回键回桌面"，文档/桌面提示都写清楚；
+- **B**：保留乐视桌面做 HOME 中转，加一个后台服务检测到乐视桌面就把无双桌面拉到前台（桌面会闪现广告、需要常驻服务，不推荐）；
+- **C**：换支持标准 HOME 的机型/盒子。
+其它品牌若 HOME 不灵，先重启；仍不灵说明该 ROM 也劫持了 HOME 键。
 
 **风险控制**：
 - 不要把无双桌面卸载/覆盖安装（它是唯一 HOME 时会导致黑屏）。
@@ -249,7 +255,9 @@ com.android.gallery3d           # 相册（按需）
 9. **电视重启后 IP 会变**：每次重连前 `adb.py discover`，不要硬编码旧 IP。
 10. **无双ADB 装完要先打开一次**，否则开机广播收不到（推送服务/自动 ADB 不生效）。
 11. **替换唯一 HOME 可能触发系统服务重启**：先装新桌面再停旧桌面，必要时重启。
-12. **刷机包不要乱刷**：第三方精简包只换皮；刷错平台/签名会变砖。
+12. **乐视 EUI 的 HOME 键被系统服务劫持**：停用原桌面后 HOME 键失效是必然（见阶段 4），用返回键回桌面。
+13. **SuperSU 反复弹窗**：读设备信息别用 `su`（`getprop`/`cat` 不需要 root），只在开 ADB 时一次 `su`；仍嫌烦可在 SuperSU 设置里关通知。
+14. **刷机包不要乱刷**：第三方精简包只换皮；刷错平台/签名会变砖。
 
 ## 复用预编译 APK（推荐：AI 没有 Android SDK/JDK 时）
 
@@ -274,7 +282,7 @@ com.android.gallery3d           # 相册（按需）
 
 | 路径 | 用途 |
 |---|---|
-| `assets/prebuilt/WushuangADB.apk` | 无双ADB（信息/开ADB/局域网装包卸载，minSdk 16，有 root 静默/无 root 确认） |
+| `assets/prebuilt/WushuangADB.apk` | 无双ADB 1.3（信息/开ADB/局域网装包卸载，minSdk 16，有 root 静默/无 root 确认） |
 | `assets/prebuilt/WushuangDesktop.apk` | 无双桌面（minSdk 16） |
 | `assets/wushuang-adb/`、`assets/wushuang-desktop/` | 两个 App 的完整源码 |
 | `assets/signing/debug.keystore` | 固定签名密钥（别名 androiddebugkey / 口令 android），保证重编可覆盖升级 |
@@ -289,6 +297,7 @@ com.android.gallery3d           # 相册（按需）
 - 版本：**V1.2**
 - 作者：**B站-锤无双**
 - 交流 QQ 群：**170621740**
+- V1.3 修复：无双ADB 读信息不再走 su（SuperSU 只在开 ADB 时弹一次）；确认乐视 EUI 的 HOME 键由系统 DesktopManager 硬编码劫持，给出返回键方案。
 - V1.2 新增：无双ADB 无 root 模式（网页推送 → 系统安装器确认；卸载走系统确认框），解释"为什么不能自动 root"，文档区分"装包/桌面（可无 root）"与"开 ADB（需 root 或工程菜单）"。
 - V1.1 新增：无双ADB（信息/开ADB/局域网推送装包卸载/开机自启）、无双桌面改名、固定签名密钥、IP 变化自动发现、HOME 键坑位说明。
 - 欢迎补充新机型与新 App 版本（提 Issue / PR 即可）。

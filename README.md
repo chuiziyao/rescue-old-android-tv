@@ -6,7 +6,7 @@
 [![APK minSdk](https://img.shields.io/badge/APK%20minSdk-16-blue)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-> **版本 V1.2** ｜ 作者：**B站-锤无双** ｜ 交流 QQ 群：**170621740**
+> **版本 V1.3** ｜ 作者：**B站-锤无双** ｜ 交流 QQ 群：**170621740**
 
 来自一次真实抢救：**乐视 X3-43（MStar 6A918 / Android 4.3 / API 18 / EUI 6.0 / 已 root）**。最终结果：DS video 可用、银河奇异果/云视听极光/云视听小电视可用、无双桌面替代广告桌面、广告服务全部停用、ADB 与局域网推送全程可控。
 
@@ -30,6 +30,12 @@
 - 很多刷机 ROM 自带 `su`（SuperSU 只是管理器）：**用户不需要另装 SuperSU**，无双ADB 直接调用 `su` 即可开 ADB / 静默装包；如果 ROM 自带授权弹窗，点允许就行；
 - 电视完全没 root：无双ADB 自动进**无 root 模式**——网页上传后电视弹系统安装器，点「安装」；卸载弹系统确认框。开 ADB 只能走厂商工程菜单；
 - 换桌面：装无双桌面不需要 root；只有"停用原桌面"需要 root，部分电视允许 HOME 键弹窗里选「始终」，也能无 root 换。
+
+## 已知限制：乐视 EUI 的主页键
+
+乐视在 `system_server` 里用 `letv.desktop.DesktopManager` 劫持了 HOME 键，直接启动自家 `com.stv.launcher`，不走标准 Android HOME 解析。停用原桌面后，HOME 键会"空按"（logcat 里是 `Error while switching to desktop / NullPointerException`）。
+
+替代方案：**按遥控器「返回」退出应用即可回到无双桌面**。其它品牌如果 HOME 不灵，先重启；仍不灵说明该 ROM 也劫持了 HOME。
 
 ## 它解决什么问题
 
@@ -96,9 +102,10 @@ rescue-old-android-tv/
 
 ## 作者
 
-- 版本：**V1.2**
+- 版本：**V1.3**
 - 作者：**B站-锤无双**
 - 交流 QQ 群：**170621740**
+- V1.3：无双ADB 读设备信息不再走 `su`（SuperSU 只在开 ADB 时弹一次）；记录乐视 EUI 的 HOME 键被系统 `DesktopManager` 硬编码劫持，给出"返回键回桌面"方案。
 - V1.2：无双ADB 无 root 模式（网页推送→系统安装器确认、系统卸载确认）、说明"为什么不能自动 root"。
 - V1.1：新增无双ADB（信息/开ADB/局域网推送/开机自启）、无双桌面改名、固定签名密钥、IP 变化发现、HOME 键坑位。
 

@@ -45,7 +45,7 @@
 | 换桌面后开机无桌面 | 自制桌面被卸载/崩溃，原桌面被停用 | 恢复原桌面：`su -c pm enable <原桌面包名>`，重启 |
 | 覆盖/卸载唯一桌面时黑屏、ADB 掉线、网络断 | 部分老 ROM（乐视 4.3 实测）替换运行中的唯一 HOME 会触发 system_server 重启 | 等系统自己重启完（桌面通常恢复）；不行断电重启；确实没桌面了就 adb 恢复原桌面或重装自制桌面。预防：原桌面还在时先装新桌面、确认能启动，再停原桌面 |
 | 遥控器全部无响应、画面卡死 | system_server 被重型 App 拖死 | 先 `adb reboot`，不行 `su -c reboot`，再不行拔电源 10 秒（死机断电不会变砖） |
-| 遥控器主页键按了没反应（注入 HOME 也不走） | 老 ROM 的 HOME 键/默认偏好仍指向被停用的旧桌面 | 重启一次（开机只剩一个 HOME 时系统会设为默认）；或让用户按实体主页键从弹窗选「始终」 |
+| 遥控器主页键按了没反应（注入 HOME 也不走） | 乐视 `letv.desktop.DesktopManager` 在 PhoneWindowManager 里硬启动 `com.stv.launcher`，原桌面停用后抛 NPE | 用遥控器「返回」退出应用即回无双桌面；或保留原桌面做 HOME 中转（会闪广告） |
 | 换桌面后重启，IP 变了连不上 | DHCP 重新分配 | `python scripts/adb.py discover` 扫描本网段 5555/8555，再 connect |
 | 开机后 ADB 没自动开 | 无双ADB 装完没打开过（处于 stopped，收不到 BOOT_COMPLETED） | 打开一次无双ADB；或手动点「一键开启 ADB」 |
 | 开机仍有广告 | 广告服务/开机视频未处理 | 停 `bootadmanager` 等；检查 `/tvconfig/video.ts` |
