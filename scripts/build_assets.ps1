@@ -83,13 +83,24 @@ function Build-Apk([string]$srcDir, [string]$pkgPath, [string]$outName) {
         $java = @(Get-ChildItem -Path "src" -Recurse -Filter *.java | ForEach-Object { $_.FullName })
         if (Test-Path "gen\$pkgPath\R.java") { $java += (Get-ChildItem "gen\$pkgPath\R.java").FullName }
         & (Join-Path $jdk "bin\javac.exe") -source 8 -target 8 -bootclasspath $androidJar `
-            -d classes @java
-        & (Join-Path $jdk "bin\jar.exe") cf classes.jar -C classes .
+            -d classes @java 2>&1 | Tee-Object -FilePath javac.log
+        if ($LASTEXITCODE -ne 0) {
+            throw ("javac 失败: " + ((Get-Content javac.log -Tail 15 -ErrorAction SilentlyContinue) -join " | "))
+        }
+        if (-not (Get-ChildItem classes -Recurse -Filter *.class -ErrorAction SilentlyContinue)) {
+            throw "javac 没有产出任何 .class"
+        }
+        & (Join-Path $jdk "bin\jar.exe") cf classes.jar -C classes . 2>&1 | Tee-Object -FilePath jar.log
+        if ($LASTEXITCODE -ne 0) {
+            throw ("jar 失败: " + ((Get-Content jar.log -Tail 10 -ErrorAction SilentlyContinue) -join " | "))
+        }
         New-Item -ItemType Directory -Force -Path dexout | Out-Null
         $d8 = Join-Path $btDir "d8.bat"
         if (-not (Test-Path $d8)) { $d8 = Join-Path $btDir "d8" }
-        & $d8 --lib $androidJar --min-api $MinSdk --output dexout classes.jar
-        if ($LASTEXITCODE -ne 0) { throw "d8 失败 (exit $LASTEXITCODE)" }
+        & $d8 --lib $androidJar --min-api $MinSdk --output dexout classes.jar 2>&1 | Tee-Object -FilePath d8.log
+        if ($LASTEXITCODE -ne 0) {
+            throw ("d8 失败: " + ((Get-Content d8.log -Tail 15 -ErrorAction SilentlyContinue) -join " | "))
+        }
         if (-not (Test-Path "dexout\classes.dex")) { throw "d8 没有产出 classes.dex" }
 
         # 纯 PowerShell 把 classes.dex 写进 APK（不依赖 python，CI 上更稳）
