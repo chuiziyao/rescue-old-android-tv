@@ -2,10 +2,14 @@
 name: rescue-old-android-tv
 description: 拯救老安卓电视（Android 4.x 国产定制电视/盒子，如乐视、小米、创维、TCL 等）：核对真实 Android/API 版本，开启 ADB（含当贝市场远程安装兜底），按 minSdk 找兼容老系统的 App 版本，用手机版 App 绕过 TV 版限制，自制极简桌面替换广告桌面，用 pm disable-user 去广告，并在不可行时给出电视盒子兜底方案。触发词：老电视、安卓电视、电视卡、电视去广告、换电视桌面、DS video、当贝市场、adb调试、乐视电视、刷机包、电视精简。
 version: 1.0.0
+author: B站-锤无双
 user-invocable: true
 argument-hint: "[电视IP]"
 metadata:
   short-description: 老安卓电视抢救指南（ADB/兼容App/极简桌面/去广告）
+  author: B站-锤无双
+  version: V1.0
+  qq-group: "170621740"
 ---
 
 # 拯救老安卓电视
@@ -233,6 +237,13 @@ com.android.gallery3d           # 相册（不用可停）
 | `scripts/pardl.py` | 多线程分段下载 APK（绕开单连接限速） |
 | `scripts/build_assets.ps1` | 用 Android SDK 重新编译两个 APK |
 | `references/` | 详细 playbook、ADB 速查、找旧版方法、乐视 918 背景、排错 |
+
+## 作者与版本
+
+- 版本：**V1.0**
+- 作者：**B站-锤无双**
+- 交流 QQ 群：**170621740**
+- 欢迎补充新机型与新 App 版本（提 Issue / PR 即可）。
 
 ## 安全与免责
 

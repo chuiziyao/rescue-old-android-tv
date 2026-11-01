@@ -6,6 +6,8 @@
 [![minSdk](https://img.shields.io/badge/APK%20minSdk-16~18-blue)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
+> **版本 V1.0** ｜ 作者：**B站-锤无双** ｜ 交流 QQ 群：**170621740**
+
 来自一次真实抢救：**乐视 X3-43（MStar 6A918 / Android 4.3 / API 18 / EUI 6.0 / 已 root）**。最终结果：DS video 可用、爱奇艺 TV 版（银河奇异果）可用、腾讯 TV 版（云视听极光）可用、自制极简桌面替代广告桌面、广告服务全部停用、ADB 可控。
 
 ![极简桌面](docs/screenshots/home.png)
@@ -95,6 +97,13 @@ python scripts/check_apk.py some.apk
 
 更多见 `references/app-version-hunting.md`。
 
+## 作者
+
+- 版本：**V1.0**
+- 作者：**B站-锤无双**
+- 交流 QQ 群：**170621740**
+- 欢迎补充新机型 / 新 App 版本，提 Issue 或 PR。
+
 ## 免责声明
 
 - 只应在**你自己的设备**上使用；停用系统服务、替换桌面、改 build.prop 都有风险，请先备份并能接受回滚。
@@ -103,4 +112,4 @@ python scripts/check_apk.py some.apk
 
 ## License
 
-MIT © 2026 rescue-old-android-tv contributors
+MIT © 2026 B站-锤无双 · 交流 QQ 群 170621740
