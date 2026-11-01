@@ -1,14 +1,14 @@
 ---
 name: rescue-old-android-tv
-description: 拯救老安卓电视（Android 4.x 国产定制电视/盒子，如乐视、小米、创维、TCL 等）：用自带「无双ADB」一键看硬件信息、开 ADB、开局域网推送装包/卸载；按 minSdk 找兼容老系统的 App 版本；用手机版 App 绕过 TV 版限制；用自带「无双桌面」替换广告桌面；用 pm disable-user 去广告；并在不可行时给出电视盒子兜底方案。触发词：老电视、安卓电视、电视卡、电视去广告、换电视桌面、DS video、当贝市场、adb调试、乐视电视、刷机包、电视精简。
-version: 1.3.0
+description: 拯救老安卓电视（Android 4.x 国产定制电视/盒子，如乐视、小米、创维、TCL 等）：用自带「无双ADB」一键看硬件信息、开 ADB、开局域网推送装包/卸载；按 minSdk 找兼容老系统的 App 版本；用手机版 App 绕过 TV 版限制；用自带「无双桌面」替换广告桌面；用 pm disable-user 去广告；并在不可行时给出电视盒子兜底方案。触发词：老电视、安卓电视、电视卡、电视去广告、换电视桌面、DS video、第三方应用市场、adb调试、乐视电视、刷机包、电视精简。
+version: 1.4.0
 author: B站-锤无双
 user-invocable: true
 argument-hint: "[电视IP]"
 metadata:
   short-description: 老安卓电视抢救指南（无双ADB/无双桌面/兼容App/去广告）
   author: B站-锤无双
-  version: V1.3
+  version: V1.4
   qq-group: "170621740"
 ---
 
@@ -16,7 +16,7 @@ metadata:
 
 给 AI Agent 的操作手册：把一台 Android 4.x 的国产定制电视，从"什么都装不上、满屏广告"变成"能装兼容 App、有干净桌面、没有广告"的可用设备。本文档来自一次真实的乐视 X3-43（MStar 918 / Android 4.3 / EUI 6.0）抢救过程。
 
-**本 skill 自带两个 APK（`assets/prebuilt/`），都不依赖当贝市场：**
+**本 skill 自带两个 APK（`assets/prebuilt/`），都不依赖第三方市场：**
 
 | APK | 作用 |
 |---|---|
@@ -47,7 +47,7 @@ metadata:
 
 ## 阶段 0：装「无双ADB」，一眼看全信息
 
-**推荐第一条命令就是让用户装无双ADB**（U 盘 / 电视自带文件管理器 / 当贝市场远程推送都行），打开后屏幕上直接显示：
+**推荐第一条命令就是让用户装无双ADB**（U 盘 / 电视自带文件管理器 / 第三方市场远程推送都行），打开后屏幕上直接显示：
 
 - Android 版本 / API level / 型号 / 平台 / 内核
 - 全部 IPv4 地址
@@ -62,18 +62,18 @@ metadata:
 
 ### 路线 A：无双ADB（首选，只要电视能 root）
 
-1. 把 `assets/prebuilt/WushuangADB.apk` 拷到 U 盘根目录，插电视，用电视的「文件管理」安装；或者用当贝市场远程推送（见路线 B）装进去。
+1. 把 `assets/prebuilt/WushuangADB.apk` 拷到 U 盘根目录，插电视，用电视的「文件管理」安装；或者用第三方市场远程推送（见路线 B）装进去。
 2. 打开「无双ADB」→ SuperSU 点「允许」。
 3. App 会自动执行 `setprop service.adb.tcp.port 5555; setprop service.adb.root 1; stop adbd; start adbd`，屏幕显示 `ADB 端口: 5555`。
-4. 同一屏还会显示推送地址 `http://<电视IP>:8555/`——浏览器打开即可上传 APK 安装、点按钮卸载，**不再需要当贝市场**。
+4. 同一屏还会显示推送地址 `http://<电视IP>:8555/`——浏览器打开即可上传 APK 安装、点按钮卸载，**不再需要第三方应用市场**。
 
 > 无双ADB **不是必须 root**：有 root → 静默装/卸载 + 一键开 ADB；无 root → 网页推送后在电视上点「安装」确认（ADB 仍需工程菜单开）。
 > 开机自启：推送服务和自动开 ADB 由 `BOOT_COMPLETED` 触发，**装完必须先手动打开一次 App**（否则处于 stopped 状态收不到广播）。
 
-### 路线 B：当贝市场"远程推送"（没有 U 盘/文件管理器时）
+### 路线 B：第三方应用市场"远程推送"（没有 U 盘/文件管理器时）
 
-1. 电视打开 **当贝市场 → 我的 → 远程推送**，记下 `IP:端口`（端口会变：见过 5002、5003）。
-2. PC 扫端口：`python scripts/adb.py find-push <TV_IP>`，或浏览器看 `http://<IP>:<PORT>/` 是不是当贝页面。
+1. 电视打开 **第三方应用市场 → 我的 → 远程推送**，记下 `IP:端口`（端口会变：见过 5002、5003）。
+2. PC 扫端口：`python scripts/adb.py find-push <TV_IP>`，或浏览器看 `http://<IP>:<PORT>/` 是不是互传页面。
 3. 上传无双ADB：
    ```bash
    python scripts/adb.py upload http://<IP>:<PORT> assets/prebuilt/WushuangADB.apk
@@ -131,7 +131,7 @@ python scripts/adb.py launch com.synology.dsvideo
 python scripts/adb.py install-app app.apk     # 失败自动回退 su -c pm install
 python scripts/adb.py disable com.ktcp.video
 python scripts/adb.py enable  com.ktcp.video
-python scripts/adb.py find-push <IP>          # 找当贝远程推送端口
+python scripts/adb.py find-push <IP>          # 找第三方市场远程推送端口
 python scripts/adb.py upload http://<IP>:8555 app.apk   # 无双ADB 推送页
 ```
 
@@ -174,13 +174,13 @@ DS video 实测兼容表：
 
 ## 阶段 4：换成「无双桌面」
 
-为什么不用第三方桌面：当贝桌面等也有推荐位/广告。自制桌面只有 17KB、纯 Java、无网络权限。
+为什么不用第三方桌面：第三方桌面等也有推荐位/广告。自制桌面只有 17KB、纯 Java、无网络权限。
 
 `assets/prebuilt/WushuangDesktop.apk`（包名 `com.wushuang.desktop`，minSdk 16）特性：
 
 - 深色渐变 + 圆角卡片 + 统一 64dp 图标 + 焦点蓝框放大 + 右上角 24 小时时钟/日期；
 - 左上角标题「无双桌面」；
-- 默认卡片：DS video、银河奇异果、云视听极光、云视听小电视、当贝市场、设置、**无双ADB**；
+- 默认卡片：DS video、银河奇异果、云视听极光、云视听小电视、设置、**无双ADB**；
 - 「＋」从已安装应用里添加、长按卡片移除、应用卸载后自动隐藏卡片。
 
 **切换默认桌面的正确顺序（Android 4.3 没有 `pm set-home-activity`）：**
@@ -246,7 +246,7 @@ com.android.gallery3d           # 相册（按需）
 
 1. **EUI 版本 ≠ Android 版本**；`ro.build.version.sdk` 才是真相。
 2. **工程菜单可能没有 ADB 开关**（MStar 工厂菜单只有 Uart Enable）→ 用无双ADB。
-3. **当贝远程推送端口会变**（5002→5003）→ `adb.py find-push`，或直接用无双ADB 的 8555。
+3. **第三方市场远程推送端口会变**（5002→5003）→ `adb.py find-push`，或直接用无双ADB 的 8555。
 4. **`adb install` 被拒** → `su -c pm install`。
 5. **`am start` 被改坏** → `su -c am start` 或 `monkey`。
 6. **非 root `screencap` 0 字节 / uiautomator 权限错**。
@@ -283,7 +283,7 @@ com.android.gallery3d           # 相册（按需）
 | 路径 | 用途 |
 |---|---|
 | `assets/prebuilt/WushuangADB.apk` | 无双ADB 1.3（信息/开ADB/局域网装包卸载，minSdk 16，有 root 静默/无 root 确认） |
-| `assets/prebuilt/WushuangDesktop.apk` | 无双桌面（minSdk 16） |
+| `assets/prebuilt/WushuangDesktop.apk` | 无双桌面 13.0（minSdk 16） |
 | `assets/wushuang-adb/`、`assets/wushuang-desktop/` | 两个 App 的完整源码 |
 | `assets/signing/debug.keystore` | 固定签名密钥（别名 androiddebugkey / 口令 android），保证重编可覆盖升级 |
 | `scripts/adb.py` | TV 控制助手（connect/discover/cap/key/tap/text/launch/install/disable/enable/find-push/upload） |
@@ -297,6 +297,7 @@ com.android.gallery3d           # 相册（按需）
 - 版本：**V1.2**
 - 作者：**B站-锤无双**
 - 交流 QQ 群：**170621740**
+- V1.4：去品牌化（文档/代码不再出现第三方市场名称）；无双桌面 13.0 默认卡片同步清理。
 - V1.3 修复：无双ADB 读信息不再走 su（SuperSU 只在开 ADB 时弹一次）；确认乐视 EUI 的 HOME 键由系统 DesktopManager 硬编码劫持，给出返回键方案。
 - V1.2 新增：无双ADB 无 root 模式（网页推送 → 系统安装器确认；卸载走系统确认框），解释"为什么不能自动 root"，文档区分"装包/桌面（可无 root）"与"开 ADB（需 root 或工程菜单）"。
 - V1.1 新增：无双ADB（信息/开ADB/局域网推送装包卸载/开机自启）、无双桌面改名、固定签名密钥、IP 变化自动发现、HOME 键坑位说明。

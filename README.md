@@ -6,13 +6,13 @@
 [![APK minSdk](https://img.shields.io/badge/APK%20minSdk-16-blue)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-> **版本 V1.3** ｜ 作者：**B站-锤无双** ｜ 交流 QQ 群：**170621740**
+> **版本 V1.4** ｜ 作者：**B站-锤无双** ｜ 交流 QQ 群：**170621740**
 
 来自一次真实抢救：**乐视 X3-43（MStar 6A918 / Android 4.3 / API 18 / EUI 6.0 / 已 root）**。最终结果：DS video 可用、银河奇异果/云视听极光/云视听小电视可用、无双桌面替代广告桌面、广告服务全部停用、ADB 与局域网推送全程可控。
 
 ![无双桌面](docs/screenshots/home.png)
 
-## 自带两个 APK（不依赖当贝市场）
+## 自带两个 APK（不依赖第三方市场）
 
 | APK | 包名 | 作用 |
 |---|---|---|
@@ -41,7 +41,7 @@
 
 - 电视提示"解析包错误"——根因是 APK 的 `minSdk` 高于电视 API，不是"内核太老"；
 - 设置里找不到 ADB 开关——U 盘装无双ADB，点一下就有 ADB；
-- 没有当贝市场 / 不会用 —— 无双ADB 自带 8555 推送页，浏览器就能装包/卸载；
+- 没有第三方应用市场 / 不会用 —— 无双ADB 自带 8555 推送页，浏览器就能装包/卸载；
 - 满屏广告、桌面乱 —— `pm disable-user` 停广告服务 + 无双桌面替换；
 - 冷门 App（DS video）没有兼容 TV 版 —— 手机版历史版本 + ADB 自动登录；
 - 电视重启后 IP 变了 —— `python scripts/adb.py discover` 自动找回来。
@@ -98,13 +98,13 @@ rescue-old-android-tv/
 | DS video 手机版 | `com.synology.dsvideo` | **3.3.3** | 16 |
 | 哔哩哔哩手机版 | `tv.danmaku.bili` | 5.2.0 | 15 |
 | 爱奇艺手机版 | `com.qiyi.video` | 8.0 | 14 |
-| 当贝播放器 | `com.dangbei.lerad.videoposter` | 1.3.5 | 16 |
 
 ## 作者
 
-- 版本：**V1.3**
+- 版本：**V1.4**
 - 作者：**B站-锤无双**
 - 交流 QQ 群：**170621740**
+- V1.4：去品牌化（全文不出现第三方市场名称）；无双桌面 13.0 默认卡片同步清理。
 - V1.3：无双ADB 读设备信息不再走 `su`（SuperSU 只在开 ADB 时弹一次）；记录乐视 EUI 的 HOME 键被系统 `DesktopManager` 硬编码劫持，给出"返回键回桌面"方案。
 - V1.2：无双ADB 无 root 模式（网页推送→系统安装器确认、系统卸载确认）、说明"为什么不能自动 root"。
 - V1.1：新增无双ADB（信息/开ADB/局域网推送/开机自启）、无双桌面改名、固定签名密钥、IP 变化发现、HOME 键坑位。

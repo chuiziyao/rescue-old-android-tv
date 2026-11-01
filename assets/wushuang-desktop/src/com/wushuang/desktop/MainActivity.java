@@ -36,7 +36,6 @@ public class MainActivity extends Activity {
             "com.gitvdemo.video",
             "com.ktcp.video",
             "com.xiaodianshi.tv.yst",
-            "com.dangbeimarket",
             "com.stv.t2.globalsetting",
             "com.wushuang.adb"
     };

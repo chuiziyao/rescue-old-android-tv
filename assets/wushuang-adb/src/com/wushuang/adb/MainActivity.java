@@ -111,9 +111,9 @@ public class MainActivity extends Activity {
 
         TextView tip = new TextView(this);
         tip.setText("\n提示：\n"
-                + "1. 首次运行会请求 root（SuperSU 点允许），并自动尝试开启 ADB(5555)。\n"
+                + "1. 首次运行会请求一次 root（SuperSU 点允许），并自动尝试开启 ADB(5555)。\n"
                 + "2. 推送服务无密码，只在自家局域网用，用完请点“停止推送”。\n"
-                + "3. 没有 root 时只能查看信息，安装/卸载会失败。\n"
+                + "3. 没有 root 也能推送安装（电视上点确认）；开 ADB 需要 root 或工程菜单。\n"
                 + "4. 重启后推送服务会自动启动，但 ADB 需要再点一次“一键开启 ADB”。");
         tip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         tip.setPadding(0, dp(16), 0, 0);
@@ -121,13 +121,11 @@ public class MainActivity extends Activity {
 
         setContentView(scroll);
 
-        // 首次进入自动启动推送服务 + 尝试开 ADB
+        // 首次进入：一次 su 同时开 ADB + 取信息（最多弹一次 SuperSU）
         startService(new Intent(this, PushService.class));
         new Thread(new Runnable() {
             public void run() {
-                if (Shell.hasRoot()) {
-                    Shell.enableAdb();
-                }
+                DeviceInfo.refresh(true);
                 runOnUiThread(new Runnable() {
                     public void run() {
                         refresh();
@@ -135,8 +133,6 @@ public class MainActivity extends Activity {
                 });
             }
         }).start();
-
-        refresh();
     }
 
     private LinearLayout row() {
@@ -161,6 +157,10 @@ public class MainActivity extends Activity {
     private void refresh() {
         new Thread(new Runnable() {
             public void run() {
+                // 只有数据过期才重新读，避免每点一次都触发 su 弹窗
+                if (DeviceInfo.isStale(3000)) {
+                    DeviceInfo.refresh();
+                }
                 final String s = DeviceInfo.summary();
                 final boolean run = PushService.running;
                 final String url = pushUrl();

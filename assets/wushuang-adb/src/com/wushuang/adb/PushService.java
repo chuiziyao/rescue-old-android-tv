@@ -2,6 +2,9 @@ package com.wushuang.adb;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Environment;
 import android.os.IBinder;
 import java.io.ByteArrayOutputStream;
@@ -189,12 +192,31 @@ public class PushService extends Service {
             filename = filename.replaceAll("[^A-Za-z0-9._-]", "_");
             if (!filename.toLowerCase().endsWith(".apk")) filename = filename + ".apk";
 
-            File dir = new File(getFilesDir(), "upload");
-            if (!dir.exists()) dir.mkdirs();
+            boolean root = Shell.hasRoot();
+            String mode = multipartTextValue(body, "mode");
+            boolean userMode = !root || "user".equals(mode);
+
+            File dir;
+            if (userMode) {
+                dir = new File("/sdcard/Download/wushuang");
+                dir.mkdirs();
+            } else {
+                dir = new File(getFilesDir(), "upload");
+                if (!dir.exists()) dir.mkdirs();
+            }
             File f = new File(dir, filename);
             FileOutputStream fos = new FileOutputStream(f);
             fos.write(body, dataStart, next - dataStart);
             fos.close();
+
+            if (userMode) {
+                Intent it = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+                it.setDataAndType(Uri.fromFile(f), "application/vnd.android.package-archive");
+                it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(it);
+                return "<h3>📲 已推送到电视</h3><p>请在电视上点「安装」确认（无 root 模式）。</p>"
+                        + "<p>文件: " + esc(f.getAbsolutePath()) + "</p>" + backLink();
+            }
 
             String result = Shell.su("cp \"" + f.getAbsolutePath() + "\" /data/local/tmp/wushuang_upload.apk"
                     + " && chmod 644 /data/local/tmp/wushuang_upload.apk"
@@ -211,6 +233,12 @@ public class PushService extends Service {
         if (pkg == null || pkg.trim().length() == 0) {
             return "<p>缺少包名</p>" + backLink();
         }
+        if (!Shell.hasRoot()) {
+            Intent it = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, Uri.parse("package:" + pkg.trim()));
+            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(it);
+            return "<h3>📲 已发送卸载请求</h3><p>请在电视上确认卸载（无 root 模式）。</p>" + backLink();
+        }
         String result = Shell.su("pm uninstall " + pkg.trim());
         String ok = result.contains("Success") ? "✅ 卸载成功" : "❌ 卸载失败";
         return "<h3>" + ok + " " + esc(pkg) + "</h3><pre>" + esc(result) + "</pre>" + backLink();
@@ -226,22 +254,36 @@ public class PushService extends Service {
                 .append("table{width:100%;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #1e2a38}")
                 .append("small{color:#7b8a99}</style></head><body>");
         sb.append("<h1>无双ADB · 局域网推送</h1>");
+        if (DeviceInfo.isStale(300000)) {
+            // 页面打开时最多每 5 分钟刷新一次；读信息走普通 shell，不触发 SuperSU
+            new Thread(new Runnable() {
+                public void run() {
+                    DeviceInfo.refresh();
+                }
+            }).start();
+        }
         sb.append("<pre>").append(esc(DeviceInfo.summary()))
                 .append("局域网推送: ").append(esc(pushUrl())).append("</pre>");
         sb.append("<h3>安装 APK</h3><form action='/upload' method='post' enctype='multipart/form-data'>")
-                .append("<input type='file' name='file1' accept='.apk' required> ")
+                .append("<input type='file' name='file1' accept='.apk' required><br>")
+                .append("<label><input type='checkbox' name='mode' value='user'> 无 root 模式（电视上弹窗确认安装）</label><br>")
                 .append("<button type='submit'>上传并安装</button></form>");
-        sb.append("<small>需要电视已 root；上传后自动静默安装。</small>");
+        sb.append("<small>有 root：静默安装/卸载；无 root：自动切到系统安装器，让你在电视上点确认。</small>");
         sb.append("<h3>已安装第三方应用</h3><table>");
-        String list = Shell.su("pm list packages -3");
-        for (String l : list.split("\n")) {
-            if (!l.startsWith("package:")) continue;
-            final String pkg = l.substring(8).trim();
-            if (pkg.length() == 0) continue;
-            sb.append("<tr><td>").append(esc(pkg)).append("</td><td style='text-align:right'>")
-                    .append("<form action='/uninstall' method='post' style='display:inline'>")
-                    .append("<input type='hidden' name='pkg' value='").append(esc(pkg)).append("'>")
-                    .append("<button type='submit'>卸载</button></form></td></tr>");
+        try {
+            PackageManager pm = getPackageManager();
+            for (PackageInfo pi : pm.getInstalledPackages(0)) {
+                if (pi.applicationInfo == null) continue;
+                if ((pi.applicationInfo.flags & android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0) continue;
+                final String pkg = pi.packageName;
+                CharSequence label = pm.getApplicationLabel(pi.applicationInfo);
+                sb.append("<tr><td>").append(esc(label == null ? pkg : label.toString()))
+                        .append("<br><small>").append(esc(pkg)).append("</small></td><td style='text-align:right'>")
+                        .append("<form action='/uninstall' method='post' style='display:inline'>")
+                        .append("<input type='hidden' name='pkg' value='").append(esc(pkg)).append("'>")
+                        .append("<button type='submit'>卸载</button></form></td></tr>");
+            }
+        } catch (Exception ignored) {
         }
         sb.append("</table></body></html>");
         return sb.toString();
@@ -262,6 +304,17 @@ public class PushService extends Service {
     private static String esc(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private static String multipartTextValue(byte[] body, String field) {
+        String s = new String(body, java.nio.charset.Charset.forName("ISO-8859-1"));
+        int i = s.indexOf("name=\"" + field + "\"");
+        if (i < 0) return null;
+        int j = s.indexOf("\r\n\r\n", i);
+        if (j < 0) return null;
+        int k = s.indexOf("\r\n", j + 4);
+        if (k < 0) return null;
+        return s.substring(j + 4, k).trim();
     }
 
     private static String formValue(String body, String key) {

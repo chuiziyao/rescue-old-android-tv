@@ -13,7 +13,7 @@
   python adb.py install-app app.apk       # 先试 adb install，失败回退 su -c pm install
   python adb.py disable com.ktcp.video
   python adb.py enable com.ktcp.video
-  python adb.py find-push 192.168.2.163   # 扫描当贝市场远程推送端口(4995-5011)
+  python adb.py find-push 192.168.2.163   # 扫描第三方市场远程推送端口(4995-5011)
 python adb.py discover                  # 扫描本网段 5555/8555，电视重启换 IP 后用
 python adb.py upload http://192.168.2.163:8555 app.apk   # 无双ADB 推送页安装
   python adb.py upload http://192.168.2.163:5002 ADB-Switch.apk
@@ -158,7 +158,7 @@ def cmd_install(path):
 
 
 def cmd_upload(base, path):
-    """向当贝市场远程推送页面 POST /upload，字段名 file1。"""
+    """向第三方市场远程推送页面 POST /upload，字段名 file1。"""
     base = base.rstrip("/")
     boundary = "----dshupload%d" % int(time.time())
     fname = os.path.basename(path)
@@ -242,7 +242,7 @@ def cmd_find_push(ip):
         try:
             with urllib.request.urlopen("http://%s:%d/" % (ip, p), timeout=3) as r:
                 head = r.read(600).decode("utf-8", "replace")
-            if "upload" in head or "当贝" in head or "WebServer" in head or "Web" in head:
+            if "upload" in head or "WebServer" in head or "Web" in head:
                 print("push page: http://%s:%d/  (POST /upload, field file1)" % (ip, p))
         except Exception:
             pass

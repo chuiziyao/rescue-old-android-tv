@@ -30,10 +30,10 @@ aapt dump badging app.apk | grep -E "package:|sdkVersion|native-code"
    - 银河奇异果（爱奇艺 TV）：`com.gitvdemo.video`，实测 16.10.0 仍 `minSdk=16`；
    - 云视听极光（腾讯 TV）：`com.ktcp.video`，老固件自带版本 13.5.0 可用；
    - 云视听小电视（B 站 TV）：`com.xiaodianshi.tv.yst`；
-   - 当贝市场：`com.dangbeimarket`；
+   - 第三方应用市场（包名因机器而异，用 `pm list packages` 查）；
    - DS video Android TV：`com.synology.dsvideo` 的 TV 版（minSdk 21，4.3 不行，见下）。
 2. **手机版历史版本**（TV 版没有或太新时）。
-3. **同功能替代**（如 Kodi 16、当贝播放器 1.3.5、VLC 旧版）。
+3. **同功能替代**（如 VLC 旧版、系统自带播放器；Kodi 太重不推荐）。
 
 ## 4. 手机版历史版本去哪找
 
@@ -54,7 +54,7 @@ aapt dump badging app.apk | grep -E "package:|sdkVersion|native-code"
 
 ### 4.3 官方/商店旧版接口
 
-- 当贝市场 TV 端会按设备兼容性推荐版本，是最省事的"设备感知"渠道（让用户直接在电视上搜安装）。
+- 第三方应用市场 TV 端会按设备兼容性推荐版本，是最省事的"设备感知"渠道（让用户直接在电视上搜安装）。
 - 群晖官方归档站保留全部历史 APK：`https://archive.synology.com/download/Mobile/AndroidTV-DSvideo` 与 `.../Android-DSvideo`（每个版本目录下是 APK）。
 - 群晖 CDN（国内快）：`https://cndl.synology.cn/download/Mobile/<产品>/<版本>/<文件名>.apk`。
 
@@ -80,7 +80,6 @@ aapt dump badging app.apk | grep -E "package:|sdkVersion|native-code"
 | 云视听小电视（B 站 TV） | `com.xiaodianshi.tv.yst` | 固件自带 ✅ |
 | 哔哩哔哩手机版 | `tv.danmaku.bili` | 5.2.0，minSdk 15 ✅（能刷推荐流） |
 | 爱奇艺手机版 | `com.qiyi.video` | 8.0，minSdk 14 ✅（能开、能播预告片） |
-| 当贝播放器 | `com.dangbei.lerad.videoposter` | 1.3.5，minSdk 16 ✅（老电视唯一能装的版本，建议留备份） |
 | Kodi | `org.xbmc.kodi` | 16.1 可用但**太重，2GB 老电视容易把系统拖死**，不推荐 |
 
 ## 6. 硬改 minSdk 的风险（不推荐常规使用）
