@@ -56,24 +56,28 @@ jobs:
       - name: Build WushuangADB + WushuangDesktop
         shell: pwsh
         run: |
+          $dbg = "ci-debug.txt"
+          "start" | Set-Content $dbg
           Start-Transcript -Path build.log -Force | Out-Null
           $ok = $false
           try {
-            ./scripts/build_assets.ps1 -OutDir dist
+            ./scripts/build_assets.ps1 -OutDir dist 2>&1 | Tee-Object -FilePath build.out
+            "script returned" | Add-Content $dbg
             $ok = $true
           } catch {
+            "catch: $($_.Exception.Message)" | Add-Content $dbg
             Write-Host "BUILD FAILED: $($_.Exception.Message)"
             Write-Host $_.ScriptStackTrace
           } finally {
             Stop-Transcript | Out-Null
           }
-          Get-ChildItem dist/*.apk -ErrorAction SilentlyContinue | Select-Object Name, Length
-          if (-not $ok) { exit 1 }
+          "ok=$ok LASTEXITCODE=$LASTEXITCODE" | Add-Content $dbg
+          Get-ChildItem dist -ErrorAction SilentlyContinue | ForEach-Object { "file: $($_.Name) $($_.Length)" } | Add-Content $dbg
           if (-not (Test-Path dist/WushuangADB.apk) -or -not (Test-Path dist/WushuangDesktop.apk)) {
-            Write-Host "missing apk"
+            "missing apk" | Add-Content $dbg
             exit 1
           }
-          Write-Host "BUILD OK"
+          "reaching exit 0" | Add-Content $dbg
           exit 0
 
       - name: Report failure to commit comment
@@ -83,10 +87,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $body = ""
-          if (Test-Path build.log) {
-            $body = (Get-Content build.log -Tail 150 -ErrorAction SilentlyContinue) -join "`n"
+          if (Test-Path ci-debug.txt) {
+            $body = (Get-Content ci-debug.txt -ErrorAction SilentlyContinue) -join "`n"
           }
-          if (-not $body) { $body = "no build.log captured" }
+          if (-not $body -and (Test-Path build.out)) {
+            $body = (Get-Content build.out -Tail 120 -ErrorAction SilentlyContinue) -join "`n"
+          }
+          if (-not $body -and (Test-Path build.log)) {
+            $body = (Get-Content build.log -Tail 120 -ErrorAction SilentlyContinue) -join "`n"
+          }
+          if (-not $body) { $body = "no debug info captured" }
           $payload = @{ body = "CI build failed. log tail:`n``````n$body`n``````" } | ConvertTo-Json -Depth 3
           $uri = "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/comments"
           try {
