@@ -104,7 +104,8 @@ rescue-old-android-tv/
 - 版本：**V1.5**
 - 作者：**B站-锤无双**
 - 交流 QQ 群：**170621740**
-- V1.5：发布到 SkillHub（slug: wushuang-rescue-old-android-tv），版本对齐 GitHub Release v1.5.0。`n- V1.4：去品牌化（全文不出现第三方市场名称）；无双桌面 13.0 默认卡片同步清理。
+- V1.5：发布到 SkillHub（slug: wushuang-rescue-old-android-tv），版本对齐 GitHub Release v1.5.0。
+- V1.4：去品牌化（全文不出现第三方市场名称）；无双桌面 13.0 默认卡片同步清理。
 - V1.3：无双ADB 读设备信息不再走 `su`（SuperSU 只在开 ADB 时弹一次）；记录乐视 EUI 的 HOME 键被系统 `DesktopManager` 硬编码劫持，给出"返回键回桌面"方案。
 - V1.2：无双ADB 无 root 模式（网页推送→系统安装器确认、系统卸载确认）、说明"为什么不能自动 root"。
 - V1.1：新增无双ADB（信息/开ADB/局域网推送/开机自启）、无双桌面改名、固定签名密钥、IP 变化发现、HOME 键坑位。
