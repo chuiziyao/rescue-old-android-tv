@@ -1,14 +1,20 @@
 ---
 name: rescue-old-android-tv
+slug: wushuang-rescue-old-android-tv
+displayName: 拯救老安卓电视
+version: 1.5.0
+summary: 用自带「无双ADB」+「无双桌面」把 Android 4.x 老电视救活：看 build.prop/IP/root、一键开 ADB、局域网推包装卸载、按 minSdk 找兼容 App、换干净桌面、pm disable-user 去广告（含两个 APK 与源码）。
+license: MIT
+homepage: https://github.com/chuiziyao/rescue-old-android-tv
+tags: [android-tv, adb, launcher, debloat, letv, skill]
 description: 拯救老安卓电视（Android 4.x 国产定制电视/盒子，如乐视、小米、创维、TCL 等）：用自带「无双ADB」一键看硬件信息、开 ADB、开局域网推送装包/卸载；按 minSdk 找兼容老系统的 App 版本；用手机版 App 绕过 TV 版限制；用自带「无双桌面」替换广告桌面；用 pm disable-user 去广告；并在不可行时给出电视盒子兜底方案。触发词：老电视、安卓电视、电视卡、电视去广告、换电视桌面、DS video、第三方应用市场、adb调试、乐视电视、刷机包、电视精简。
-version: 1.4.0
 author: B站-锤无双
 user-invocable: true
 argument-hint: "[电视IP]"
 metadata:
   short-description: 老安卓电视抢救指南（无双ADB/无双桌面/兼容App/去广告）
   author: B站-锤无双
-  version: V1.4
+  version: V1.5
   qq-group: "170621740"
 ---
 
@@ -297,6 +303,7 @@ com.android.gallery3d           # 相册（按需）
 - 版本：**V1.2**
 - 作者：**B站-锤无双**
 - 交流 QQ 群：**170621740**
+- V1.5：发布到 SkillHub（slug: wushuang-rescue-old-android-tv），版本号对齐 GitHub Release v1.5.0。
 - V1.4：去品牌化（文档/代码不再出现第三方市场名称）；无双桌面 13.0 默认卡片同步清理。
 - V1.3 修复：无双ADB 读信息不再走 su（SuperSU 只在开 ADB 时弹一次）；确认乐视 EUI 的 HOME 键由系统 DesktopManager 硬编码劫持，给出返回键方案。
 - V1.2 新增：无双ADB 无 root 模式（网页推送 → 系统安装器确认；卸载走系统确认框），解释"为什么不能自动 root"，文档区分"装包/桌面（可无 root）"与"开 ADB（需 root 或工程菜单）"。
