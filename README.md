@@ -21,6 +21,17 @@
 
 > 两个 APK 都是 minSdk 16（Android 4.1+），用仓库内固定密钥 `assets/signing/debug.keystore` 签名（口令 `android`），重编可覆盖升级。**无双ADB 的开 ADB / 装包 / 卸载需要 root；无双桌面安装不需要 root，但替换默认桌面通常需要停用原桌面（要 root）。**
 
+## 下载两个 APK（最新版）
+
+- **GitHub Release（推荐，附 SHA-256 可核对）**：https://github.com/chuiziyao/rescue-old-android-tv/releases/tag/v1.5.0
+  - `WushuangADB.apk`：https://github.com/chuiziyao/rescue-old-android-tv/releases/download/v1.5.0/WushuangADB.apk
+  - `WushuangDesktop.apk`：https://github.com/chuiziyao/rescue-old-android-tv/releases/download/v1.5.0/WushuangDesktop.apk
+- **GitHub 仓库源文件**（与 Release 同一版）：https://github.com/chuiziyao/rescue-old-android-tv/tree/main/assets/prebuilt
+- **SkillHub**：平台不允许直接上传二进制 APK，skill 包内以 Base64 文本附带；下载 skill 包后运行 `python scripts/decode_apk.py` 即可还原两个 APK 并校验 SHA-256。
+- 国内网络访问 GitHub 慢/断时：可在交流 QQ 群 **170621740** 群文件获取，或使用你信任的加速方式。
+
+> 版本对照：`WushuangADB.apk` 1.3（25,053 B，SHA-256 `AD8BC79A…75B7`）；`WushuangDesktop.apk` 13.0（16,927 B，SHA-256 `D39E90AD…7667`）。
+
 ## 关于 root：能不能"直接做掉"？
 
 **结论：做不到通用自动 root。** root 依赖具体 SoC 的 bootloader/系统漏洞，不同机型方法完全不同；把提权漏洞打进 APK 既不通用也不安全。本项目不内置任何 root 漏洞。

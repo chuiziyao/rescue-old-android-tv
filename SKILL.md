@@ -14,7 +14,7 @@ argument-hint: "[电视IP]"
 metadata:
   short-description: 老安卓电视抢救指南（无双ADB/无双桌面/兼容App/去广告）
   author: B站-锤无双
-  version: V1.5
+  version: 1.5.0
   qq-group: "170621740"
 ---
 
